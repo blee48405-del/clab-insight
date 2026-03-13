@@ -731,117 +731,45 @@ function filterDomain(d, btn) {
 
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjQ3I_mhww7wM5KKuxr3ORtGoXqrjj6WX_jN8iS9ofozqfYMfTmD2Eh0rtBzz7JJkt2w/exec';
 
-  /* ── 스타일 ── */
   const style = document.createElement('style');
-  style.textContent = `
-    #clab-chat-toggle {
-      position:fixed; bottom:28px; right:28px; z-index:9999;
-      width:56px; height:56px; border-radius:50%;
-      background:#FF5C35; color:#fff; border:none; cursor:pointer;
-      box-shadow:0 4px 20px rgba(255,92,53,0.45);
-      display:flex; align-items:center; justify-content:center;
-      font-size:26px; transition:transform 0.2s,box-shadow 0.2s;
-    }
-    #clab-chat-toggle:hover { transform:scale(1.08); }
-    #clab-chat-toggle .ic-open  { display:flex; }
-    #clab-chat-toggle .ic-close { display:none; }
-    #clab-chat-toggle.open .ic-open  { display:none; }
-    #clab-chat-toggle.open .ic-close { display:flex; }
-    #clab-chat-badge {
-      position:fixed; bottom:92px; right:22px; z-index:10000;
-      background:#FF5C35; color:#fff; font-size:12px; font-weight:700;
-      border-radius:20px; padding:5px 12px;
-      box-shadow:0 2px 10px rgba(255,92,53,0.35);
-      pointer-events:none; opacity:0; transition:opacity 0.4s; white-space:nowrap;
-    }
-    #clab-chat-badge.show { opacity:1; }
-    #clab-chat-panel {
-      position:fixed; bottom:96px; right:28px; z-index:9998;
-      width:360px; max-height:580px; background:#fff;
-      border-radius:20px; box-shadow:0 8px 40px rgba(0,0,0,0.18);
-      display:flex; flex-direction:column; overflow:hidden;
-      transform:scale(0.92) translateY(12px); opacity:0;
-      pointer-events:none;
-      transition:transform 0.25s cubic-bezier(.4,0,.2,1),opacity 0.25s;
-    }
-    #clab-chat-panel.open { transform:scale(1) translateY(0); opacity:1; pointer-events:all; }
-    @media(max-width:420px){
-      #clab-chat-panel{right:8px;left:8px;width:auto;bottom:88px;}
-      #clab-chat-toggle{bottom:16px;right:16px;}
-      #clab-chat-badge{bottom:80px;right:12px;}
-    }
-    .clab-header {
-      background:#FF5C35; color:#fff; padding:16px 20px; flex-shrink:0;
-      display:flex; align-items:center; gap:10px;
-    }
-    .clab-header-avatar {
-      width:36px; height:36px; border-radius:50%;
-      background:rgba(255,255,255,0.25);
-      display:flex; align-items:center; justify-content:center; font-size:18px;
-    }
-    .clab-header-info h3 { margin:0; font-size:15px; font-weight:700; }
-    .clab-header-info p  { margin:0; font-size:11px; opacity:0.85; }
-    .clab-messages {
-      flex:1; overflow-y:auto; padding:16px 14px 8px;
-      display:flex; flex-direction:column; gap:8px;
-    }
-    .clab-msg {
-      max-width:85%; font-size:14px; line-height:1.55;
-      padding:10px 14px; border-radius:16px; word-break:break-word; white-space:pre-wrap;
-    }
-    .clab-msg.bot  { background:#f5f5f5; color:#222; align-self:flex-start; border-bottom-left-radius:4px; }
-    .clab-msg.user { background:#FF5C35; color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
-    .clab-msg.done { background:#e8f8f0; color:#1a7a4a; align-self:center; text-align:center; border-radius:12px; font-size:13px; max-width:90%; }
-    .clab-quick-replies {
-      display:flex; flex-wrap:wrap; gap:7px;
-      padding:4px 14px 10px; flex-shrink:0;
-    }
-    .clab-qr {
-      font-size:13px; font-weight:500; padding:8px 14px;
-      border:1.5px solid #FF5C35; border-radius:20px;
-      color:#FF5C35; background:#fff; cursor:pointer;
-      transition:all 0.15s; white-space:nowrap;
-    }
-    .clab-qr:hover { background:#FF5C35; color:#fff; }
-    .clab-footer {
-      border-top:1px solid #ebebeb; padding:12px 14px; flex-shrink:0;
-    }
-    .clab-input-row { display:flex; gap:8px; align-items:flex-end; }
-    .clab-input {
-      flex:1; resize:none; border:1.5px solid #ddd; border-radius:12px;
-      padding:10px 14px; font-size:14px;
-      font-family:'Noto Sans KR',-apple-system,sans-serif;
-      line-height:1.4; outline:none; transition:border-color 0.15s;
-      min-height:42px; max-height:100px;
-    }
-    .clab-input:focus { border-color:#FF5C35; }
-    .clab-send {
-      flex-shrink:0; width:42px; height:42px; border-radius:50%;
-      background:#FF5C35; color:#fff; border:none; cursor:pointer;
-      font-size:18px; display:flex; align-items:center; justify-content:center;
-      transition:opacity 0.15s;
-    }
-    .clab-send:hover { opacity:0.85; }
-    .clab-send:disabled { opacity:0.4; cursor:default; }
-    .clab-step-hint { font-size:11px; color:#aaa; margin-bottom:6px; }
-    .clab-typing {
-      display:flex; gap:4px; align-items:center;
-      padding:10px 14px; background:#f5f5f5;
-      border-radius:16px; border-bottom-left-radius:4px; align-self:flex-start;
-    }
-    .clab-typing span {
-      width:6px; height:6px; background:#bbb; border-radius:50%;
-      animation:clabDot 1.2s infinite;
-    }
-    .clab-typing span:nth-child(2){animation-delay:0.2s;}
-    .clab-typing span:nth-child(3){animation-delay:0.4s;}
-    @keyframes clabDot{0%,60%,100%{transform:translateY(0);opacity:0.5;}30%{transform:translateY(-4px);opacity:1;}}
-  `;
+  style.textContent = [
+    '#clab-chat-toggle{position:fixed;bottom:28px;right:28px;z-index:9999;width:56px;height:56px;border-radius:50%;background:#FF5C35;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(255,92,53,0.45);display:flex;align-items:center;justify-content:center;font-size:26px;transition:transform 0.2s}',
+    '#clab-chat-toggle:hover{transform:scale(1.08)}',
+    '#clab-chat-toggle .ic-open{display:flex}#clab-chat-toggle .ic-close{display:none}',
+    '#clab-chat-toggle.open .ic-open{display:none}#clab-chat-toggle.open .ic-close{display:flex}',
+    '#clab-chat-badge{position:fixed;bottom:92px;right:22px;z-index:10000;background:#FF5C35;color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:5px 12px;box-shadow:0 2px 10px rgba(255,92,53,0.35);pointer-events:none;opacity:0;transition:opacity 0.4s;white-space:nowrap}',
+    '#clab-chat-badge.show{opacity:1}',
+    '#clab-chat-panel{position:fixed;bottom:96px;right:28px;z-index:9998;width:360px;max-height:580px;background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:scale(0.92) translateY(12px);opacity:0;pointer-events:none;transition:transform 0.25s cubic-bezier(.4,0,.2,1),opacity 0.25s}',
+    '#clab-chat-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}',
+    '@media(max-width:420px){#clab-chat-panel{right:8px;left:8px;width:auto;bottom:88px}#clab-chat-toggle{bottom:16px;right:16px}#clab-chat-badge{bottom:80px;right:12px}}',
+    '.clab-header{background:#FF5C35;color:#fff;padding:16px 20px;flex-shrink:0;display:flex;align-items:center;gap:10px}',
+    '.clab-header-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:18px}',
+    '.clab-header-info h3{margin:0;font-size:15px;font-weight:700}.clab-header-info p{margin:0;font-size:11px;opacity:0.85}',
+    '.clab-messages{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:8px}',
+    '.clab-msg{max-width:85%;font-size:14px;line-height:1.55;padding:10px 14px;border-radius:16px;word-break:break-word;white-space:pre-wrap}',
+    '.clab-msg.bot{background:#f5f5f5;color:#222;align-self:flex-start;border-bottom-left-radius:4px}',
+    '.clab-msg.user{background:#FF5C35;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}',
+    '.clab-msg.done{background:#e8f8f0;color:#1a7a4a;align-self:center;text-align:center;border-radius:12px;font-size:13px;max-width:90%}',
+    '.clab-quick-replies{display:flex;flex-wrap:wrap;gap:7px;padding:4px 14px 10px;flex-shrink:0}',
+    '.clab-qr{font-size:13px;font-weight:500;padding:8px 14px;border:1.5px solid #FF5C35;border-radius:20px;color:#FF5C35;background:#fff;cursor:pointer;transition:all 0.15s;white-space:nowrap}',
+    '.clab-qr:hover{background:#FF5C35;color:#fff}',
+    '.clab-footer{border-top:1px solid #ebebeb;padding:12px 14px;flex-shrink:0}',
+    '.clab-input-row{display:flex;gap:8px;align-items:flex-end}',
+    '.clab-input{flex:1;resize:none;border:1.5px solid #ddd;border-radius:12px;padding:10px 14px;font-size:14px;font-family:"Noto Sans KR",-apple-system,sans-serif;line-height:1.4;outline:none;transition:border-color 0.15s;min-height:42px;max-height:100px}',
+    '.clab-input:focus{border-color:#FF5C35}',
+    '.clab-send{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:#FF5C35;color:#fff;border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s}',
+    '.clab-send:hover{opacity:0.85}.clab-send:disabled{opacity:0.4;cursor:default}',
+    '.clab-step-hint{font-size:11px;color:#aaa;margin-bottom:6px}',
+    '.clab-typing{display:flex;gap:4px;align-items:center;padding:10px 14px;background:#f5f5f5;border-radius:16px;border-bottom-left-radius:4px;align-self:flex-start}',
+    '.clab-typing span{width:6px;height:6px;background:#bbb;border-radius:50%;animation:clabDot 1.2s infinite}',
+    '.clab-typing span:nth-child(2){animation-delay:0.2s}.clab-typing span:nth-child(3){animation-delay:0.4s}',
+    '@keyframes clabDot{0%,60%,100%{transform:translateY(0);opacity:0.5}30%{transform:translateY(-4px);opacity:1}}'
+  ].join('');
   document.head.appendChild(style);
 
-  /* ── DOM ── */
   const badge = document.createElement('div');
-  badge.id = 'clab-chat-badge'; badge.textContent = '💬 문의하기';
+  badge.id = 'clab-chat-badge';
+  badge.textContent = '💬 문의하기';
 
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'clab-chat-toggle';
@@ -849,24 +777,7 @@ function filterDomain(d, btn) {
 
   const panel = document.createElement('div');
   panel.id = 'clab-chat-panel';
-  panel.innerHTML = `
-    <div class="clab-header">
-      <div class="clab-header-avatar">👏</div>
-      <div class="clab-header-info">
-        <h3>CLAB 문의하기</h3>
-        <p>평일 09:00–18:00 운영 · 빠른 답변 드립니다</p>
-      </div>
-    </div>
-    <div class="clab-messages" id="clab-msgs"></div>
-    <div class="clab-quick-replies" id="clab-qrs"></div>
-    <div class="clab-footer" id="clab-footer" style="display:none">
-      <div class="clab-step-hint" id="clab-hint"></div>
-      <div class="clab-input-row">
-        <textarea class="clab-input" id="clab-input" rows="1" maxlength="500"></textarea>
-        <button class="clab-send" id="clab-send">➤</button>
-      </div>
-    </div>
-  `;
+  panel.innerHTML = '<div class="clab-header"><div class="clab-header-avatar">👏</div><div class="clab-header-info"><h3>CLAB 문의하기</h3><p>평일 09:00–18:00 운영 · 빠른 답변 드립니다</p></div></div><div class="clab-messages" id="clab-msgs"></div><div class="clab-quick-replies" id="clab-qrs"></div><div class="clab-footer" id="clab-footer" style="display:none"><div class="clab-step-hint" id="clab-hint"></div><div class="clab-input-row"><textarea class="clab-input" id="clab-input" rows="1" maxlength="500"></textarea><button class="clab-send" id="clab-send">➤</button></div></div>';
 
   document.body.appendChild(badge);
   document.body.appendChild(toggleBtn);
@@ -879,11 +790,9 @@ function filterDomain(d, btn) {
   const inputEl  = document.getElementById('clab-input');
   const sendBtn  = document.getElementById('clab-send');
 
-  /* ── 대화 상태 ── */
   const state = { step:0, category:'', subCategory:'', name:'', contact:'', message:'' };
   let isSending = false, isOpen = false;
 
-  /* ── 헬퍼 ── */
   function addMsg(text, role) {
     const div = document.createElement('div');
     div.className = 'clab-msg ' + role;
@@ -898,98 +807,90 @@ function filterDomain(d, btn) {
     msgsEl.appendChild(el); msgsEl.scrollTop = msgsEl.scrollHeight;
   }
   function hideTyping() { const el = document.getElementById('clab-typing'); if(el) el.remove(); }
-  function botSay(text, delay=400) {
-    return new Promise(r => {
+  function botSay(text, delay) {
+    return new Promise(function(r) {
       showTyping();
-      setTimeout(() => { hideTyping(); addMsg(text,'bot'); r(); }, delay);
+      setTimeout(function() { hideTyping(); addMsg(text,'bot'); r(); }, delay || 400);
     });
   }
-  function setQuickReplies(items) {
+  function setQR(items) {
     qrsEl.innerHTML = '';
-    items.forEach(({ label, value }) => {
-      const btn = document.createElement('button');
-      btn.className = 'clab-qr'; btn.textContent = label;
-      btn.onclick = () => onQuickReply(value || label);
+    items.forEach(function(item) {
+      var btn = document.createElement('button');
+      btn.className = 'clab-qr';
+      btn.textContent = item.label;
+      btn.onclick = function() { onQR(item.value || item.label); };
       qrsEl.appendChild(btn);
     });
   }
-  function clearQuickReplies() { qrsEl.innerHTML = ''; }
-  function showInput(hint, placeholder) {
+  function clearQR() { qrsEl.innerHTML = ''; }
+  function showInput(hint, ph) {
     footerEl.style.display = '';
     hintEl.textContent = hint || '';
-    inputEl.placeholder = placeholder || '';
-    inputEl.value = '';
-    inputEl.style.height = 'auto';
-    setTimeout(() => inputEl.focus(), 100);
+    inputEl.placeholder = ph || '';
+    inputEl.value = ''; inputEl.style.height = 'auto';
+    setTimeout(function() { inputEl.focus(); }, 100);
   }
   function hideInput() { footerEl.style.display = 'none'; }
 
-  /* ── 대화 흐름 ── */
   async function startFlow() {
-    state.step = 0; state.category = ''; state.subCategory = '';
-    state.name = ''; state.contact = ''; state.message = '';
-    hideInput(); clearQuickReplies();
+    Object.assign(state, { step:0, category:'', subCategory:'', name:'', contact:'', message:'' });
+    hideInput(); clearQR();
     await botSay('안녕하세요! 👏 CLAB입니다.
 어떤 문의를 도와드릴까요?', 500);
-    setQuickReplies([
-      { label: '📰 매거진 문의' },
-      { label: '🤝 클랩 협업 문의' },
-    ]);
+    setQR([{ label:'📰 매거진 문의' }, { label:'🤝 클랩 협업 문의' }]);
     state.step = 1;
   }
 
-  async function onQuickReply(value) {
-    clearQuickReplies();
+  async function onQR(value) {
+    clearQR();
     addMsg(value, 'user');
-
     if (state.step === 1) {
       state.category = value;
       if (value.includes('매거진')) {
         await botSay('매거진 관련 문의군요!
 어떤 내용인가요?', 500);
-        setQuickReplies([
-          { label: '📬 구독 신청' },
-          { label: '📢 광고 · 제휴 문의' },
-          { label: '✍️ 콘텐츠 제보' },
-          { label: '❓ 기타 문의' },
+        setQR([
+          { label:'📬 구독 신청' },
+          { label:'📢 광고 · 제휴 문의' },
+          { label:'✍️ 콘텐츠 제보' },
+          { label:'❓ 기타 문의' },
         ]);
       } else {
         await botSay('클랩 협업 문의군요!
 어떤 내용인가요?', 500);
-        setQuickReplies([
-          { label: '🏢 기업 협업' },
-          { label: '📝 콘텐츠 파트너' },
-          { label: '🎉 이벤트 · 캠페인' },
-          { label: '❓ 기타 문의' },
+        setQR([
+          { label:'🏢 기업 협업' },
+          { label:'📝 콘텐츠 파트너' },
+          { label:'🎉 이벤트 · 캠페인' },
+          { label:'❓ 기타 문의' },
         ]);
       }
       state.step = 2;
-
     } else if (state.step === 2) {
       state.subCategory = value;
       await botSay('성함을 알려주세요 😊', 500);
       showInput('', '홍길동');
       state.step = 3;
+    } else if (value === '__restart__') {
+      await startFlow();
     }
   }
 
   async function onUserInput(text) {
     addMsg(text, 'user');
     inputEl.value = ''; inputEl.style.height = 'auto';
-
     if (state.step === 3) {
       state.name = text;
       await botSay('연락처를 남겨주세요.
 (이메일 또는 전화번호)', 500);
       showInput('', 'example@email.com');
       state.step = 4;
-
     } else if (state.step === 4) {
       state.contact = text;
       await botSay('문의 내용을 자세히 적어주세요. 📝', 500);
       showInput('', '궁금한 점을 자유롭게 작성해주세요…');
       state.step = 5;
-
     } else if (state.step === 5) {
       state.message = text;
       hideInput();
@@ -1001,32 +902,28 @@ function filterDomain(d, btn) {
     isSending = true; sendBtn.disabled = true;
     showTyping();
     try {
-      const payload = {
-        timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
-        name:        state.name,
-        category:    state.category,
-        subCategory: state.subCategory,
-        contact:     state.contact,
-        message:     state.message,
-        page:        location.href,
-      };
       await fetch(APPS_SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          timestamp:   new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+          name:        state.name,
+          category:    state.category,
+          subCategory: state.subCategory,
+          contact:     state.contact,
+          message:     state.message,
+          page:        location.href,
+        }),
       });
       hideTyping();
-      const doneEl = document.createElement('div');
-      doneEl.className = 'clab-msg done';
-      doneEl.textContent = '✅ 문의가 접수되었습니다!
+      const done = document.createElement('div');
+      done.className = 'clab-msg done';
+      done.textContent = '✅ 문의가 접수되었습니다!
 빠른 시일 내에 연락드릴게요 😊';
-      msgsEl.appendChild(doneEl);
-      msgsEl.scrollTop = msgsEl.scrollHeight;
-      await new Promise(r => setTimeout(r, 1200));
+      msgsEl.appendChild(done); msgsEl.scrollTop = msgsEl.scrollHeight;
+      await new Promise(function(r){ setTimeout(r, 1000); });
       await botSay('추가 문의가 있으시면 언제든지 말씀해주세요!', 400);
-      setQuickReplies([
-        { label: '🔄 새 문의하기', value: '__restart__' },
-      ]);
+      setQR([{ label:'🔄 새 문의하기', value:'__restart__' }]);
     } catch(err) {
       hideTyping();
       addMsg('전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'bot');
@@ -1035,31 +932,21 @@ function filterDomain(d, btn) {
     }
   }
 
-  /* ── restart 처리 ── */
-  const _onQR = onQuickReply;
-  async function onQuickReplyWrapper(value) {
-    if (value === '__restart__') { clearQuickReplies(); await startFlow(); return; }
-    await _onQR(value);
-  }
-  // override
-  window.__clabOnQR = onQuickReplyWrapper;
-
-  /* ── 이벤트 ── */
   function submit() {
-    const text = inputEl.value.trim();
+    var text = inputEl.value.trim();
     if (!text || isSending) return;
     onUserInput(text);
   }
+
   sendBtn.addEventListener('click', submit);
-  inputEl.addEventListener('keydown', e => {
+  inputEl.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
   });
-  inputEl.addEventListener('input', () => {
+  inputEl.addEventListener('input', function() {
     inputEl.style.height = 'auto';
     inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
   });
-
-  toggleBtn.addEventListener('click', () => {
+  toggleBtn.addEventListener('click', function() {
     isOpen = !isOpen;
     toggleBtn.classList.toggle('open', isOpen);
     panel.classList.toggle('open', isOpen);
@@ -1067,18 +954,7 @@ function filterDomain(d, btn) {
     if (isOpen && msgsEl.childElementCount === 0) startFlow();
   });
 
-  setTimeout(() => badge.classList.add('show'), 3000);
-
-  /* setQuickReplies를 onQuickReplyWrapper로 연결 */
-  function setQuickReplies(items) {
-    qrsEl.innerHTML = '';
-    items.forEach(({ label, value }) => {
-      const btn = document.createElement('button');
-      btn.className = 'clab-qr'; btn.textContent = label;
-      btn.onclick = () => window.__clabOnQR(value || label);
-      qrsEl.appendChild(btn);
-    });
-  }
+  setTimeout(function() { badge.classList.add('show'); }, 3000);
 })();
 </script>
 </body>
