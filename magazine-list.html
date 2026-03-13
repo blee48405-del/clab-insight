@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>클랩 인사이트 | CLAB</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF5C35; --primary-light: #fff3f0;
+      --dark: #111; --gray1: #333; --gray2: #666; --gray3: #999; --gray4: #ccc; --gray5: #f5f5f5;
+      --white: #fff; --border: #ebebeb; --radius: 14px;
+      --shadow: 0 2px 16px rgba(0,0,0,0.07); --shadow-hover: 0 8px 32px rgba(0,0,0,0.13);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--white); color:var(--dark); line-height:1.6; -webkit-font-smoothing:antialiased; }
+
+    header { position:sticky; top:0; z-index:100; background:rgba(255,255,255,0.96); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); }
+    .header-inner { max-width:1140px; margin:0 auto; padding:0 24px; height:64px; display:flex; align-items:center; gap:16px; }
+    .logo { font-size:20px; font-weight:700; text-decoration:none; color:var(--dark); display:flex; align-items:center; gap:6px; }
+    .logo-clab { color:var(--primary); }
+    .logo-badge { font-size:10px; font-weight:500; background:var(--primary); color:#fff; padding:2px 7px; border-radius:20px; }
+    .header-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    .admin-link { font-size:12px; color:var(--gray3); text-decoration:none; padding:6px 12px; border-radius:8px; transition:all .15s; }
+    .admin-link:hover { color:var(--gray1); background:var(--gray5); }
+    .clab-btn { font-size:13px; font-weight:600; background:var(--primary); color:#fff; border-radius:8px; padding:8px 16px; text-decoration:none; transition:opacity .15s; }
+    .clab-btn:hover { opacity:.85; }
+
+    .hero { background:linear-gradient(135deg,#fff8f6 0%,#ffeee8 100%); padding:64px 24px 48px; text-align:center; }
+    .hero-eyebrow { font-size:11px; font-weight:700; color:var(--primary); letter-spacing:2px; text-transform:uppercase; background:var(--primary-light); border:1px solid rgba(255,92,53,.2); padding:4px 14px; border-radius:20px; margin-bottom:16px; display:inline-block; }
+    .hero-title { font-size:clamp(28px,5vw,48px); font-weight:700; letter-spacing:-1px; margin-bottom:12px; }
+    .hero-title em { color:var(--primary); font-style:normal; }
+    .hero-desc { font-size:15px; color:var(--gray2); margin-bottom:32px; }
+    .hero-stats { display:inline-flex; background:#fff; border-radius:14px; border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+    .h-stat { padding:14px 28px; text-align:center; border-right:1px solid var(--border); }
+    .h-stat:last-child { border-right:none; }
+    .h-stat strong { display:block; font-size:24px; font-weight:700; color:var(--primary); letter-spacing:-1px; }
+    .h-stat span { font-size:11px; color:var(--gray3); }
+
+    .section { max-width:1140px; margin:0 auto; padding:56px 24px; }
+    .section-label { font-size:11px; font-weight:700; color:var(--primary); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+    .section-title { font-size:22px; font-weight:700; margin-bottom:28px; }
+
+    .issues-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+
+    .issue-featured {
+      grid-column:1/-1; display:grid; grid-template-columns:300px 1fr;
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      overflow:hidden; text-decoration:none; color:inherit; transition:all .2s;
+    }
+    .issue-featured:hover { box-shadow:var(--shadow-hover); transform:translateY(-3px); }
+    .issue-featured .i-thumb { min-height:220px; }
+    .issue-featured .i-body { padding:36px; }
+    .issue-featured .i-num { font-size:48px; font-weight:700; letter-spacing:-2px; line-height:1; }
+    .issue-featured .i-week { font-size:18px; font-weight:600; margin:8px 0 10px; }
+    .issue-featured .i-desc { font-size:14px; color:var(--gray2); line-height:1.7; margin-bottom:16px; }
+
+    .issue-card { background:#fff; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; text-decoration:none; color:inherit; transition:all .2s; display:flex; flex-direction:column; }
+    .issue-card:hover { box-shadow:var(--shadow-hover); transform:translateY(-3px); }
+
+    .i-thumb { height:140px; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; color:rgba(255,255,255,.9); letter-spacing:-2px; position:relative; }
+    .latest-badge { position:absolute; top:12px; left:12px; font-size:10px; font-weight:700; background:rgba(255,255,255,.25); color:#fff; padding:3px 8px; border-radius:20px; letter-spacing:1px; }
+    .i-body { padding:20px; flex:1; display:flex; flex-direction:column; }
+    .i-num { font-size:28px; font-weight:700; letter-spacing:-1px; line-height:1; margin-bottom:4px; }
+    .i-week { font-size:14px; font-weight:600; margin-bottom:3px; }
+    .i-date { font-size:12px; color:var(--gray3); margin-bottom:12px; }
+    .i-desc { font-size:13px; color:var(--gray2); line-height:1.6; margin-bottom:14px; flex:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .i-stats { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .stat-chip { font-size:11px; color:var(--gray2); background:var(--gray5); border-radius:20px; padding:3px 10px; }
+    .read-btn { display:inline-flex; align-items:center; gap:4px; font-size:13px; font-weight:600; color:var(--primary); background:var(--primary-light); border:1px solid rgba(255,92,53,.2); border-radius:8px; padding:8px 16px; transition:all .15s; align-self:flex-start; }
+    .read-btn:hover { background:var(--primary); color:#fff; }
+
+    .empty-state { grid-column:1/-1; text-align:center; padding:80px 24px; color:var(--gray3); }
+    .empty-icon { font-size:48px; margin-bottom:16px; }
+    .empty-state h3 { font-size:18px; font-weight:600; color:var(--gray2); margin-bottom:8px; }
+    .empty-state p { font-size:14px; }
+    .empty-state a { color:var(--primary); text-decoration:none; font-weight:500; }
+
+    footer { background:var(--dark); color:rgba(255,255,255,.5); padding:48px 24px; text-align:center; margin-top:80px; }
+    .footer-logo { font-size:18px; font-weight:700; color:#fff; margin-bottom:8px; }
+    .footer-logo span { color:var(--primary); }
+    footer p { font-size:13px; }
+    footer a { color:rgba(255,255,255,.4); text-decoration:none; }
+    footer a:hover { color:#fff; }
+
+    @media(max-width:900px) { .issues-grid{grid-template-columns:repeat(2,1fr)} .issue-featured{grid-template-columns:1fr} .issue-featured .i-thumb{min-height:160px} }
+    @media(max-width:640px) { .issues-grid{grid-template-columns:1fr} .hero-stats{flex-direction:column} .h-stat{border-right:none;border-bottom:1px solid var(--border)} .h-stat:last-child{border-bottom:none} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a href="magazine-list.html" class="logo"><span class="logo-clab">c</span>lab <span class="logo-badge">INSIGHT</span></a>
+    <div class="header-right">
+      <a href="https://clab.iba.or.kr" target="_blank" class="clab-btn">👏 CLAB 바로가기</a>
+      <a href="admin-magazine.html" class="admin-link">관리자</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Weekly Curation</div>
+  <h1 class="hero-title">클랩 <em>인사이트</em></h1>
+  <p class="hero-desc">단톡방에서 공유된 링크·생각들을 매주 큐레이션합니다</p>
+  <div class="hero-stats">
+    <div class="h-stat"><strong id="ts-issues">—</strong><span>발행 호수</span></div>
+    <div class="h-stat"><strong id="ts-links">—</strong><span>큐레이션 링크</span></div>
+    <div class="h-stat"><strong id="ts-members">—</strong><span>누적 참여자</span></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">All Issues</div>
+  <div class="section-title">전체 호수</div>
+  <div class="issues-grid" id="issues-grid">
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>아직 발행된 호수가 없어요</h3>
+      <p><a href="admin-magazine.html">관리자 페이지</a>에서 첫 번째 매거진을 발행해주세요</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo"><span>c</span>lab insight</div>
+  <p>단톡방 큐레이션 매거진 · by <a href="https://clab.iba.or.kr">CLAB</a></p>
+</footer>
+
+<script>
+const PALETTE = ['#FF5C35','#3B82F6','#10B981','#8B5CF6','#F59E0B','#EC4899','#06B6D4','#6366F1'];
+const col = id => PALETTE[id % PALETTE.length];
+function getIssues() { try { return JSON.parse(localStorage.getItem('clab_issues')||'[]'); } catch { return []; } }
+function fmtDate(str) { const d=new Date(str); return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`; }
+
+function render() {
+  const issues = getIssues().filter(i=>i.published).sort((a,b)=>b.id-a.id);
+  const totalLinks = issues.reduce((s,i)=>s+(i.stats?.links||0),0);
+  const totalMembers = issues.reduce((s,i)=>s+(i.stats?.members||0),0);
+  document.getElementById('ts-issues').textContent = issues.length;
+  document.getElementById('ts-links').textContent = totalLinks;
+  document.getElementById('ts-members').textContent = totalMembers;
+
+  if (!issues.length) return;
+  const [latest, ...rest] = issues;
+  const c0 = col(latest.id);
+
+  let html = `
+  <a href="magazine-view.html?id=${latest.id}" class="issue-featured">
+    <div class="i-thumb" style="background:linear-gradient(135deg,${c0},${c0}88)">
+      <span class="latest-badge">LATEST</span>
+      ${latest.id}호
+    </div>
+    <div class="i-body">
+      <div class="i-num" style="color:${c0}">${latest.id}호</div>
+      <div class="i-week">${latest.weekLabel}</div>
+      <div class="i-date">${fmtDate(latest.publishedAt)}</div>
+      <div class="i-desc">${latest.description||'이번 주 단톡방에서 공유된 인사이트를 모았습니다.'}</div>
+      <div class="i-stats">
+        <span class="stat-chip">🔗 링크 ${latest.stats?.links||0}개</span>
+        <span class="stat-chip">👥 ${latest.stats?.members||0}명 참여</span>
+        <span class="stat-chip">💬 ${latest.stats?.messages||0}개 메시지</span>
+      </div>
+      <span class="read-btn">읽기 →</span>
+    </div>
+  </a>`;
+
+  rest.forEach(issue => {
+    const c = col(issue.id);
+    html += `
+    <a href="magazine-view.html?id=${issue.id}" class="issue-card">
+      <div class="i-thumb" style="background:linear-gradient(135deg,${c},${c}88)">${issue.id}호</div>
+      <div class="i-body">
+        <div class="i-num" style="color:${c}">${issue.id}호</div>
+        <div class="i-week">${issue.weekLabel}</div>
+        <div class="i-date">${fmtDate(issue.publishedAt)}</div>
+        <div class="i-desc">${issue.description||'이번 주 단톡방 인사이트 모음'}</div>
+        <div class="i-stats">
+          <span class="stat-chip">🔗 ${issue.stats?.links||0}</span>
+          <span class="stat-chip">👥 ${issue.stats?.members||0}</span>
+          <span class="stat-chip">💬 ${issue.stats?.messages||0}</span>
+        </div>
+        <span class="read-btn">읽기 →</span>
+      </div>
+    </a>`;
+  });
+
+  document.getElementById('issues-grid').innerHTML = html;
+}
+render();
+</script>
+
+<!-- ───── CLAB 챗봇 위젯 ───── -->
+<script>
+(function () {
+  'use strict';
+  // ▼ Google Apps Script 배포 URL을 아래에 입력하세요
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL';
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #clab-chat-toggle { position:fixed; bottom:28px; right:28px; z-index:9999; width:56px; height:56px; border-radius:50%; background:#FF5C35; color:#fff; border:none; cursor:pointer; box-shadow:0 4px 20px rgba(255,92,53,0.45); display:flex; align-items:center; justify-content:center; font-size:26px; transition:transform 0.2s,box-shadow 0.2s; }
+    #clab-chat-toggle:hover { transform:scale(1.08); }
+    #clab-chat-toggle .chat-icon-open { display:flex; } #clab-chat-toggle .chat-icon-close { display:none; }
+    #clab-chat-toggle.open .chat-icon-open { display:none; } #clab-chat-toggle.open .chat-icon-close { display:flex; }
+    #clab-chat-badge { position:fixed; bottom:92px; right:22px; z-index:10000; background:#FF5C35; color:#fff; font-size:12px; font-weight:700; border-radius:20px; padding:5px 12px; box-shadow:0 2px 10px rgba(255,92,53,0.35); pointer-events:none; opacity:1; transition:opacity 0.4s; white-space:nowrap; }
+    #clab-chat-badge.hidden { opacity:0; }
+    #clab-chat-panel { position:fixed; bottom:96px; right:28px; z-index:9998; width:360px; max-height:560px; background:#fff; border-radius:20px; box-shadow:0 8px 40px rgba(0,0,0,0.18); display:flex; flex-direction:column; overflow:hidden; transform:scale(0.92) translateY(12px); opacity:0; pointer-events:none; transition:transform 0.25s cubic-bezier(.4,0,.2,1),opacity 0.25s; }
+    #clab-chat-panel.open { transform:scale(1) translateY(0); opacity:1; pointer-events:all; }
+    @media(max-width:420px){ #clab-chat-panel{right:8px;left:8px;width:auto;bottom:88px;} #clab-chat-toggle{bottom:16px;right:16px;} #clab-chat-badge{bottom:80px;right:12px;} }
+    .clab-chat-header { background:#FF5C35; color:#fff; padding:18px 20px 14px; flex-shrink:0; }
+    .clab-chat-header h3 { margin:0 0 2px; font-size:16px; font-weight:700; } .clab-chat-header p { margin:0; font-size:12px; opacity:0.85; }
+    .clab-chat-messages { flex:1; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:10px; }
+    .clab-msg { max-width:82%; font-size:14px; line-height:1.55; padding:10px 14px; border-radius:14px; word-break:break-word; white-space:pre-wrap; }
+    .clab-msg.bot { background:#f5f5f5; color:#222; align-self:flex-start; border-bottom-left-radius:4px; }
+    .clab-msg.user { background:#FF5C35; color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+    .clab-msg.system { background:#fff3f0; color:#FF5C35; font-size:12px; align-self:center; text-align:center; border-radius:10px; padding:6px 12px; }
+    .clab-chat-footer { border-top:1px solid #ebebeb; padding:12px 14px; flex-shrink:0; }
+    .clab-input-row { display:flex; gap:8px; align-items:flex-end; }
+    .clab-chat-input { flex:1; resize:none; border:1px solid #ddd; border-radius:12px; padding:10px 14px; font-size:14px; font-family:'Noto Sans KR',-apple-system,sans-serif; line-height:1.4; outline:none; transition:border-color 0.15s; max-height:100px; min-height:42px; }
+    .clab-chat-input:focus { border-color:#FF5C35; }
+    .clab-chat-send { flex-shrink:0; width:42px; height:42px; border-radius:50%; background:#FF5C35; color:#fff; border:none; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:opacity 0.15s; }
+    .clab-chat-send:hover { opacity:0.85; } .clab-chat-send:disabled { opacity:0.45; cursor:default; }
+    .clab-name-input { width:100%; border:1px solid #ddd; border-radius:12px; padding:8px 14px; font-size:13px; font-family:'Noto Sans KR',-apple-system,sans-serif; outline:none; margin-bottom:8px; transition:border-color 0.15s; }
+    .clab-name-input:focus { border-color:#FF5C35; }
+    .clab-privacy { font-size:11px; color:#bbb; text-align:center; margin-top:6px; }
+    .clab-typing { display:flex; gap:4px; align-items:center; padding:10px 14px; background:#f5f5f5; border-radius:14px; border-bottom-left-radius:4px; align-self:flex-start; }
+    .clab-typing span { width:6px; height:6px; background:#bbb; border-radius:50%; animation:clabDot 1.2s infinite; }
+    .clab-typing span:nth-child(2){animation-delay:0.2s;} .clab-typing span:nth-child(3){animation-delay:0.4s;}
+    @keyframes clabDot{0%,60%,100%{transform:translateY(0);opacity:0.5;}30%{transform:translateY(-4px);opacity:1;}}
+  `;
+  document.head.appendChild(style);
+
+  const badge = document.createElement('div');
+  badge.id = 'clab-chat-badge'; badge.textContent = '💬 문의하기'; badge.classList.add('hidden');
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'clab-chat-toggle';
+  toggleBtn.setAttribute('aria-label', '챗봇 열기');
+  toggleBtn.innerHTML = '<span class="chat-icon-open">💬</span><span class="chat-icon-close">✕</span>';
+
+  const panel = document.createElement('div');
+  panel.id = 'clab-chat-panel'; panel.setAttribute('role', 'dialog');
+  panel.innerHTML = `
+    <div class="clab-chat-header">
+      <h3>👏 CLAB 문의하기</h3>
+      <p>무엇이든 물어보세요. 운영팀이 답변드릴게요!</p>
+    </div>
+    <div class="clab-chat-messages" id="clab-messages"></div>
+    <div class="clab-chat-footer">
+      <input type="text" class="clab-name-input" id="clab-name" placeholder="이름 (선택)" maxlength="30"/>
+      <div class="clab-input-row">
+        <textarea class="clab-chat-input" id="clab-input" placeholder="메시지를 입력하세요…" rows="1" maxlength="1000"></textarea>
+        <button class="clab-chat-send" id="clab-send" aria-label="전송">➤</button>
+      </div>
+      <div class="clab-privacy">입력 내용은 운영팀에게만 전달됩니다.</div>
+    </div>
+  `;
+
+  document.body.appendChild(badge);
+  document.body.appendChild(toggleBtn);
+  document.body.appendChild(panel);
+
+  const messagesEl = document.getElementById('clab-messages');
+  const inputEl    = document.getElementById('clab-input');
+  const sendBtn    = document.getElementById('clab-send');
+  const nameEl     = document.getElementById('clab-name');
+  let isOpen = false, isSending = false;
+
+  function addMsg(text, role) {
+    const div = document.createElement('div');
+    div.className = 'clab-msg ' + role; div.textContent = text;
+    messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function showTyping() {
+    const el = document.createElement('div'); el.className = 'clab-typing'; el.id = 'clab-typing-indicator';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    messagesEl.appendChild(el); messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideTyping() { const el = document.getElementById('clab-typing-indicator'); if (el) el.remove(); }
+  function autoResize() { inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px'; }
+  function initMessages() {
+    if (messagesEl.childElementCount === 0)
+      addMsg('안녕하세요! CLAB에 오신 것을 환영합니다 👏\n궁금한 점이나 의견을 남겨주세요. 운영팀이 확인 후 답변드릴게요.', 'bot');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    isOpen = !isOpen;
+    toggleBtn.classList.toggle('open', isOpen);
+    panel.classList.toggle('open', isOpen);
+    badge.classList.add('hidden');
+    if (isOpen) { initMessages(); setTimeout(() => inputEl.focus(), 300); }
+  });
+
+  setTimeout(() => badge.classList.remove('hidden'), 3000);
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || isSending) return;
+    const name = nameEl.value.trim() || '익명';
+    isSending = true; sendBtn.disabled = true;
+    addMsg(text, 'user');
+    inputEl.value = ''; inputEl.style.height = 'auto';
+    showTyping();
+    try {
+      if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL') {
+        await new Promise(r => setTimeout(r, 800));
+        hideTyping();
+        addMsg('Apps Script URL을 설정해주세요.', 'system');
+      } else {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, message: text, page: location.href,
+            timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+          }),
+        });
+        hideTyping();
+        addMsg('메시지가 전달되었습니다! 운영팀이 확인 후 연락드릴게요 😊', 'bot');
+      }
+    } catch (err) {
+      hideTyping();
+      addMsg('전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'system');
+    } finally {
+      isSending = false; sendBtn.disabled = false; inputEl.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+  inputEl.addEventListener('input', autoResize);
+})();
+</script>
+</body>
+</html>

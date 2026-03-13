@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카톡 매거진 생성기</title>
+  <style>
+    :root {
+      --bg: #f5f5f0;
+      --card: #ffffff;
+      --accent: #1a1a2e;
+      --sub: #666;
+      --border: #e0e0d8;
+      --link-color: #2c5f8a;
+      --tag-bg: #eef3f8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); font-family: 'Georgia', serif; color: var(--accent); }
+
+    /* ── 업로드 화면 ── */
+    #upload-screen {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      gap: 24px; padding: 40px;
+    }
+    #upload-screen h1 { font-size: 36px; letter-spacing: -1px; }
+    #upload-screen p { color: var(--sub); font-family: sans-serif; font-size: 14px; text-align: center; line-height: 1.7; }
+    .upload-box {
+      width: 420px; max-width: 100%;
+      border: 2px dashed #bbb;
+      border-radius: 12px;
+      padding: 40px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #fff;
+    }
+    .upload-box:hover, .upload-box.drag { border-color: var(--link-color); background: #f0f6ff; }
+    .upload-box .icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-box p { font-family: sans-serif; color: var(--sub); font-size: 14px; margin-top: 8px; }
+    #file-input { display: none; }
+
+    .config-box {
+      width: 420px; max-width: 100%;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .config-box label { font-family: sans-serif; font-size: 12px; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; }
+    .config-box input, .config-box select {
+      width: 100%; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-family: sans-serif; font-size: 14px;
+      margin-top: 4px; outline: none;
+    }
+    .config-box input:focus, .config-box select:focus { border-color: var(--link-color); }
+
+    .btn {
+      padding: 12px 28px; border: none; border-radius: 6px;
+      font-family: sans-serif; font-size: 15px; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid #ccc; color: var(--accent); }
+
+    /* ── 매거진 화면 ── */
+    #magazine-screen { display: none; }
+
+    /* 상단 툴바 */
+    #toolbar {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: 10px 32px;
+      display: flex; align-items: center; gap: 12px;
+      font-family: sans-serif; font-size: 13px;
+    }
+    #toolbar span { color: var(--sub); }
+    #toolbar .spacer { flex: 1; }
+    #filter-bar { display: flex; gap: 8px; }
+    .filter-btn {
+      padding: 4px 12px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #fff; cursor: pointer;
+      font-size: 12px; font-family: sans-serif;
+      transition: all 0.15s;
+    }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* 커버 */
+    #cover {
+      background: var(--accent); color: #fff;
+      padding: 80px 64px 60px;
+      min-height: 420px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      position: relative; overflow: hidden;
+    }
+    #cover::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 40px);
+    }
+    #cover .issue-label {
+      font-family: sans-serif; font-size: 11px;
+      letter-spacing: 3px; text-transform: uppercase;
+      opacity: 0.5; margin-bottom: 16px;
+    }
+    #cover h1 { font-size: 64px; line-height: 1.1; letter-spacing: -2px; margin-bottom: 16px; }
+    #cover .sub-title { font-family: sans-serif; opacity: 0.6; font-size: 16px; margin-bottom: 40px; }
+    #cover .cover-meta {
+      font-family: sans-serif; font-size: 13px; opacity: 0.4;
+      display: flex; gap: 24px;
+    }
+    #cover .stats {
+      position: absolute; top: 48px; right: 64px;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    }
+    #cover .stat-item {
+      font-family: sans-serif; font-size: 12px; opacity: 0.5;
+      text-align: right;
+    }
+    #cover .stat-item strong { font-size: 28px; display: block; opacity: 1; letter-spacing: -1px; }
+
+    /* 메인 레이아웃 */
+    #content-area {
+      max-width: 1100px; margin: 0 auto;
+      padding: 48px 32px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* 섹션 제목 */
+    .section-title {
+      font-family: sans-serif; font-size: 11px;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--sub); border-top: 2px solid var(--accent);
+      padding-top: 10px; margin-bottom: 24px;
+    }
+
+    /* 아티클 카드 (링크) */
+    .article-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      transition: box-shadow 0.2s;
+    }
+    .article-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .article-card .card-meta {
+      font-family: sans-serif; font-size: 11px;
+      color: var(--sub); margin-bottom: 8px;
+      display: flex; gap: 12px; align-items: center;
+    }
+    .article-card .card-meta .sender-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      display: inline-block;
+    }
+    .article-card .card-url {
+      font-family: sans-serif; font-size: 13px;
+      color: var(--link-color); word-break: break-all;
+      text-decoration: none; display: block; margin-bottom: 6px;
+    }
+    .article-card .card-url:hover { text-decoration: underline; }
+    .article-card .card-comment {
+      font-size: 14px; line-height: 1.6;
+      color: #444; margin-top: 8px;
+      font-style: italic;
+    }
+    .article-card .card-domain {
+      display: inline-block;
+      background: var(--tag-bg);
+      color: var(--link-color);
+      font-family: sans-serif; font-size: 11px;
+      padding: 2px 8px; border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    /* 텍스트 카드 */
+    .text-card {
+      background: var(--card);
+      border-left: 3px solid var(--accent);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+    .text-card .text-body { font-size: 15px; line-height: 1.7; }
+    .text-card .text-meta {
+      font-family: sans-serif; font-size: 11px;
+      color: var(--sub); margin-top: 8px;
+    }
+
+    /* 이미지/파일 카드 */
+    .media-card {
+      background: #f8f8f5;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 12px;
+      font-family: sans-serif;
+    }
+    .media-card .media-icon { font-size: 24px; }
+    .media-card .media-name { font-size: 13px; color: #444; }
+    .media-card .media-meta { font-size: 11px; color: var(--sub); }
+
+    /* 사이드바 */
+    #sidebar { position: sticky; top: 72px; }
+
+    .sidebar-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px; margin-bottom: 20px;
+    }
+    .sidebar-card h3 {
+      font-family: sans-serif; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: var(--sub); margin-bottom: 14px;
+    }
+
+    /* 참여자 */
+    .participant {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 10px; font-family: sans-serif; font-size: 13px;
+    }
+    .participant .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: bold; color: #fff;
+      flex-shrink: 0;
+    }
+    .participant .p-count { color: var(--sub); font-size: 11px; }
+
+    /* 날짜 타임라인 */
+    .date-item {
+      font-family: sans-serif; font-size: 12px;
+      padding: 6px 0; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between;
+      color: var(--sub);
+    }
+    .date-item:last-child { border-bottom: none; }
+    .date-item strong { color: var(--accent); }
+
+    /* 키워드 태그 */
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      background: var(--tag-bg); color: var(--link-color);
+      font-family: sans-serif; font-size: 12px;
+      padding: 4px 10px; border-radius: 12px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .tag:hover { background: #d0e4f5; }
+
+    /* 날짜 구분선 */
+    .date-divider {
+      font-family: sans-serif; font-size: 11px;
+      color: var(--sub); text-align: center;
+      margin: 28px 0 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .date-divider::before, .date-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* 인용 블록 (주목할 메시지) */
+    .quote-card {
+      background: var(--accent); color: #fff;
+      border-radius: 10px; padding: 24px 28px;
+      margin-bottom: 16px;
+    }
+    .quote-card .quote-text { font-size: 18px; line-height: 1.6; margin-bottom: 12px; }
+    .quote-card .quote-author { font-family: sans-serif; font-size: 12px; opacity: 0.5; }
+
+    /* 히든 필터 */
+    .card-wrapper { transition: opacity 0.2s; }
+    .card-wrapper.hidden { display: none; }
+
+    /* 인쇄 버튼 */
+    #print-btn { background: #2c5f8a; color: #fff; }
+
+    @media print {
+      #toolbar { display: none; }
+      #upload-screen { display: none; }
+      #magazine-screen { display: block !important; }
+      #cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .article-card, .text-card { break-inside: avoid; }
+    }
+    @media (max-width: 768px) {
+      #content-area { grid-template-columns: 1fr; }
+      #sidebar { position: static; }
+      #cover h1 { font-size: 40px; }
+      #cover .stats { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── 업로드 화면 ── -->
+<div id="upload-screen">
+  <h1>카톡 매거진</h1>
+  <p>카카오톡 대화 내보내기 파일(.txt)을 올리면<br>자동으로 매거진을 생성합니다.</p>
+
+  <div class="upload-box" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="icon">📂</div>
+    <strong>파일을 여기에 드래그하거나 클릭</strong>
+    <p>카카오톡 → 채팅방 메뉴 → 대화 내보내기 → .txt 파일</p>
+  </div>
+  <input type="file" id="file-input" accept=".txt">
+
+  <div class="config-box">
+    <div>
+      <label>매거진 제목</label>
+      <input type="text" id="mag-title" placeholder="예: 스터디 위클리" value="우리들의 매거진">
+    </div>
+    <div>
+      <label>부제목</label>
+      <input type="text" id="mag-sub" placeholder="예: 2024년 1월호" value="">
+    </div>
+    <div>
+      <label>링크 최소 글자수 필터 (댓글로 인식할 길이)</label>
+      <select id="min-comment">
+        <option value="5">5자 이상</option>
+        <option value="10" selected>10자 이상</option>
+        <option value="20">20자 이상</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:12px;">
+    <button class="btn btn-primary" onclick="loadDemo()">샘플로 미리보기</button>
+    <button class="btn btn-outline" id="generate-btn" disabled onclick="generateMagazine()">매거진 생성</button>
+  </div>
+</div>
+
+<!-- ── 매거진 화면 ── -->
+<div id="magazine-screen">
+  <div id="toolbar">
+    <span id="toolbar-title">매거진</span>
+    <div class="spacer"></div>
+    <div id="filter-bar">
+      <button class="filter-btn active" data-type="all" onclick="filterCards('all', this)">전체</button>
+      <button class="filter-btn" data-type="link" onclick="filterCards('link', this)">링크</button>
+      <button class="filter-btn" data-type="text" onclick="filterCards('text', this)">텍스트</button>
+      <button class="filter-btn" data-type="media" onclick="filterCards('media', this)">파일/사진</button>
+    </div>
+    <button class="btn btn-outline" style="font-size:13px;padding:6px 14px;" onclick="goBack()">← 다시 업로드</button>
+    <button class="btn btn-primary" id="print-btn" style="font-size:13px;padding:6px 14px;" onclick="window.print()">PDF 저장</button>
+  </div>
+
+  <div id="cover">
+    <div class="stats" id="cover-stats"></div>
+    <div class="issue-label" id="cover-issue">ISSUE 01</div>
+    <h1 id="cover-title">매거진</h1>
+    <div class="sub-title" id="cover-sub"></div>
+    <div class="cover-meta" id="cover-meta"></div>
+  </div>
+
+  <div id="content-area">
+    <main id="main-content"></main>
+    <aside id="sidebar"></aside>
+  </div>
+</div>
+
+<script>
+// ── 상태 ──
+let parsedData = null;
+let rawText = '';
+
+// ── 색상 팔레트 (참여자별) ──
+const PALETTE = ['#e74c3c','#3498db','#2ecc71','#9b59b6','#f39c12','#1abc9c','#e67e22','#34495e'];
+const senderColors = {};
+let colorIdx = 0;
+function getSenderColor(name) {
+  if (!senderColors[name]) senderColors[name] = PALETTE[colorIdx++ % PALETTE.length];
+  return senderColors[name];
+}
+
+// ── 파일 입력 ──
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('drop-zone');
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) readFile(e.target.files[0]);
+});
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    rawText = e.target.result;
+    parsedData = parseKakaoTxt(rawText);
+    document.getElementById('generate-btn').disabled = false;
+    document.getElementById('generate-btn').textContent = `매거진 생성 (${parsedData.messages.length}개 메시지)`;
+    // 파일명으로 제목 자동 설정
+    const name = file.name.replace('.txt','').replace('카카오톡 대화 ', '');
+    document.getElementById('mag-title').value = name || '우리들의 매거진';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ── 카카오톡 .txt 파서 ──
+function parseKakaoTxt(text) {
+  const lines = text.split('\n');
+  const messages = [];
+  const senders = {};
+  const dates = {};
+
+  // 메시지 패턴: [이름] [오전/오후 H:MM] 내용
+  const msgPattern = /^\[(.+?)\] \[(오전|오후) (\d{1,2}):(\d{2})\] (.*)$/;
+  // 날짜 구분선: ---- 년 월 일 ---
+  const datePattern = /[-─]+\s*(\d{4}년 \d{1,2}월 \d{1,2}일.+?)\s*[-─]+/;
+
+  let currentDate = '';
+  let lastMsg = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // 날짜 구분선
+    const dateMatch = line.match(datePattern);
+    if (dateMatch) {
+      currentDate = dateMatch[1].trim();
+      if (!dates[currentDate]) dates[currentDate] = 0;
+      continue;
+    }
+
+    // 메시지
+    const msgMatch = line.match(msgPattern);
+    if (msgMatch) {
+      const [, sender, ampm, hStr, min, content] = msgMatch;
+      let hour = parseInt(hStr);
+      if (ampm === '오후' && hour !== 12) hour += 12;
+      if (ampm === '오전' && hour === 12) hour = 0;
+      const time = `${String(hour).padStart(2,'0')}:${min}`;
+
+      if (!senders[sender]) senders[sender] = 0;
+      senders[sender]++;
+      if (currentDate) dates[currentDate] = (dates[currentDate] || 0) + 1;
+
+      lastMsg = { sender, time, date: currentDate, content, type: classifyContent(content), raw: content };
+      messages.push(lastMsg);
+    } else if (lastMsg && line && !line.startsWith('카카오톡')) {
+      // 이어지는 줄 (멀티라인 메시지)
+      lastMsg.content += '\n' + line;
+    }
+  }
+
+  return { messages, senders, dates };
+}
+
+function classifyContent(content) {
+  const urlPattern = /https?:\/\/[^\s]+/;
+  if (urlPattern.test(content)) return 'link';
+  if (/사진$|이모티콘$|동영상$|파일$|GIF$/.test(content.trim())) return 'media';
+  return 'text';
+}
+
+function extractUrl(content) {
+  const m = content.match(/https?:\/\/[^\s]+/);
+  return m ? m[0] : null;
+}
+
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.',''); } catch { return url; }
+}
+
+// ── 매거진 생성 ──
+function generateMagazine() {
+  if (!parsedData) return;
+  buildMagazine(
+    parsedData,
+    document.getElementById('mag-title').value || '매거진',
+    document.getElementById('mag-sub').value,
+    parseInt(document.getElementById('min-comment').value)
+  );
+}
+
+function loadDemo() {
+  const demo = `카카오톡 대화
+저장한 날짜 : 2024-03-01 09:00:00
+
+------------------ 2024년 2월 26일 월요일 ------------------
+[김민준] [오전 9:15] https://news.ycombinator.com/item?id=39505432
+[김민준] [오전 9:15] 요즘 AI 에이전트 관련해서 핵커뉴스 핫한 글이에요
+[이서연] [오전 9:40] 오 좋다! 나도 이거 읽었는데 정말 인상적이었음
+[박지호] [오전 10:02] https://www.nature.com/articles/d41586-024-00107-9
+[박지호] [오전 10:02] 네이처에 나온 AI 과학 연구 관련 아티클
+[이서연] [오전 10:15] 대박... 사진
+[이서연] [오전 10:16] 이거 공유드려요 https://arxiv.org/abs/2402.01030
+[김민준] [오전 11:00] 어제 GPT-5 루머 진짜일까요? 다들 어떻게 생각해요?
+[박지호] [오전 11:12] 아직 모르죠 뭐 ㅋㅋ 기대는 되는데
+[이서연] [오후 1:30] 파일
+
+------------------ 2024년 2월 27일 화요일 ------------------
+[최하은] [오전 8:55] 굿모닝~ https://techcrunch.com/2024/02/26/openai-voice-engine/
+[최하은] [오전 8:55] 오픈AI 음성 엔진 관련 테크크런치 기사에요. 진짜 놀라움
+[김민준] [오전 9:10] 와 이거 들어봤는데 진짜 소름돋음
+[이서연] [오전 10:00] https://www.anthropic.com/news/claude-3-family
+[이서연] [오전 10:00] 클로드3 발표! 오늘의 핵심 뉴스
+[박지호] [오후 2:15] 오늘 스터디 자료 공유합니다 https://github.com/anthropics/anthropic-cookbook
+[박지호] [오후 2:15] 앤트로픽 공식 쿡북이에요 꼭 보세요
+[최하은] [오후 3:00] 사진
+[이서연] [오후 4:30] 오늘도 좋은 자료 많았네요! 다들 수고~
+[김민준] [오후 4:35] 수고하셨습니다 ㅎㅎ`;
+
+  parsedData = parseKakaoTxt(demo);
+  buildMagazine(parsedData, 'AI 스터디 위클리', '2024년 2월호 · Vol.1', 5);
+}
+
+function buildMagazine(data, title, subtitle, minCommentLen) {
+  const { messages, senders, dates } = data;
+
+  // 커버 세팅
+  document.getElementById('cover-title').textContent = title;
+  document.getElementById('cover-sub').textContent = subtitle || formatDateRange(Object.keys(dates));
+  document.getElementById('toolbar-title').textContent = title;
+
+  const linkMsgs = messages.filter(m => m.type === 'link');
+  const textMsgs = messages.filter(m => m.type === 'text' && m.content.length >= minCommentLen);
+  const mediaMsgs = messages.filter(m => m.type === 'media');
+
+  document.getElementById('cover-stats').innerHTML = `
+    <div class="stat-item"><strong>${messages.length}</strong>메시지</div>
+    <div class="stat-item"><strong>${linkMsgs.length}</strong>링크</div>
+    <div class="stat-item"><strong>${Object.keys(senders).length}</strong>참여자</div>
+  `;
+  document.getElementById('cover-meta').innerHTML = `
+    <span>${Object.keys(dates).join(' ~ ')}</span>
+  `;
+
+  // 메인 콘텐츠 빌드
+  const main = document.getElementById('main-content');
+  main.innerHTML = '';
+
+  // 링크 섹션
+  if (linkMsgs.length > 0) {
+    main.innerHTML += `<div class="section-title">링크 · 아티클 (${linkMsgs.length})</div>`;
+    let prevDate = '';
+    linkMsgs.forEach((msg, i) => {
+      if (msg.date !== prevDate) {
+        main.innerHTML += `<div class="date-divider">${msg.date}</div>`;
+        prevDate = msg.date;
+      }
+      const url = extractUrl(msg.content);
+      const comment = msg.content.replace(/https?:\/\/[^\s]+/g, '').trim();
+      // 이 링크 바로 다음 메시지들 중 같은 발신자의 코멘트
+      const nextComments = [];
+      for (let j = i + 1; j < messages.length && j <= i + 3; j++) {
+        if (messages[j].sender === msg.sender && messages[j].type === 'text' && messages[j].content.length >= minCommentLen) {
+          nextComments.push(messages[j].content);
+        } else break;
+      }
+      const color = getSenderColor(msg.sender);
+      main.innerHTML += `
+        <div class="card-wrapper" data-type="link">
+          <div class="article-card">
+            <div class="card-meta">
+              <span class="sender-dot" style="background:${color}"></span>
+              <strong style="color:${color}">${msg.sender}</strong>
+              <span>${msg.date} ${msg.time}</span>
+            </div>
+            <a class="card-url" href="${url}" target="_blank">${url}</a>
+            <span class="card-domain">${getDomain(url)}</span>
+            ${comment ? `<div class="card-comment">"${comment}"</div>` : ''}
+            ${nextComments.map(c => `<div class="card-comment">"${c}"</div>`).join('')}
+          </div>
+        </div>`;
+    });
+  }
+
+  // 주목할 텍스트 섹션
+  const longTexts = textMsgs.filter(m => m.content.length >= 30);
+  if (longTexts.length > 0) {
+    main.innerHTML += `<div class="section-title" style="margin-top:40px">주목할 메시지 (${longTexts.length})</div>`;
+    const highlighted = longTexts.slice(0, 3);
+    highlighted.forEach(msg => {
+      const color = getSenderColor(msg.sender);
+      main.innerHTML += `
+        <div class="card-wrapper" data-type="text">
+          <div class="quote-card" style="background:${color}">
+            <div class="quote-text">${escHtml(msg.content)}</div>
+            <div class="quote-author">— ${msg.sender} · ${msg.date} ${msg.time}</div>
+          </div>
+        </div>`;
+    });
+    if (longTexts.length > 3) {
+      longTexts.slice(3).forEach(msg => {
+        const color = getSenderColor(msg.sender);
+        main.innerHTML += `
+          <div class="card-wrapper" data-type="text">
+            <div class="text-card">
+              <div class="text-body">${escHtml(msg.content)}</div>
+              <div class="text-meta" style="color:${color}">— ${msg.sender} · ${msg.date} ${msg.time}</div>
+            </div>
+          </div>`;
+      });
+    }
+  }
+
+  // 파일/사진 섹션
+  if (mediaMsgs.length > 0) {
+    main.innerHTML += `<div class="section-title" style="margin-top:40px">공유된 파일 · 미디어 (${mediaMsgs.length})</div>`;
+    mediaMsgs.forEach(msg => {
+      const icon = msg.content.includes('사진') ? '🖼️' : msg.content.includes('동영상') ? '🎬' : msg.content.includes('파일') ? '📎' : '📁';
+      main.innerHTML += `
+        <div class="card-wrapper" data-type="media">
+          <div class="media-card">
+            <span class="media-icon">${icon}</span>
+            <div>
+              <div class="media-name">${msg.content}</div>
+              <div class="media-meta">${msg.sender} · ${msg.date} ${msg.time}</div>
+            </div>
+          </div>
+        </div>`;
+    });
+  }
+
+  // 사이드바
+  buildSidebar(data);
+
+  // 화면 전환
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('magazine-screen').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function buildSidebar(data) {
+  const { senders, dates } = data;
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = '';
+
+  // 참여자
+  const sortedSenders = Object.entries(senders).sort((a,b) => b[1]-a[1]);
+  let participantHtml = `<div class="sidebar-card"><h3>참여자</h3>`;
+  sortedSenders.forEach(([name, count]) => {
+    const color = getSenderColor(name);
+    const initial = name.charAt(0);
+    participantHtml += `
+      <div class="participant">
+        <div class="avatar" style="background:${color}">${initial}</div>
+        <div>
+          <div>${name}</div>
+          <div class="p-count">메시지 ${count}개</div>
+        </div>
+      </div>`;
+  });
+  participantHtml += '</div>';
+  sidebar.innerHTML += participantHtml;
+
+  // 날짜별 활동
+  const sortedDates = Object.entries(dates).filter(([d]) => d);
+  if (sortedDates.length > 0) {
+    let dateHtml = `<div class="sidebar-card"><h3>날짜별 활동</h3>`;
+    sortedDates.forEach(([date, count]) => {
+      dateHtml += `<div class="date-item"><strong>${date}</strong><span>${count}개</span></div>`;
+    });
+    dateHtml += '</div>';
+    sidebar.innerHTML += dateHtml;
+  }
+
+  // 도메인 태그
+  const domains = {};
+  parsedData.messages.filter(m => m.type === 'link').forEach(m => {
+    const url = extractUrl(m.content);
+    if (url) { const d = getDomain(url); domains[d] = (domains[d]||0)+1; }
+  });
+  if (Object.keys(domains).length > 0) {
+    let tagHtml = `<div class="sidebar-card"><h3>공유된 사이트</h3><div class="tag-cloud">`;
+    Object.entries(domains).sort((a,b)=>b[1]-a[1]).forEach(([d, n]) => {
+      tagHtml += `<span class="tag">${d} (${n})</span>`;
+    });
+    tagHtml += '</div></div>';
+    sidebar.innerHTML += tagHtml;
+  }
+}
+
+// ── 필터 ──
+function filterCards(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.card-wrapper').forEach(el => {
+    el.classList.toggle('hidden', type !== 'all' && el.dataset.type !== type);
+  });
+}
+
+function goBack() {
+  document.getElementById('magazine-screen').style.display = 'none';
+  document.getElementById('upload-screen').style.display = 'flex';
+}
+
+function formatDateRange(dates) {
+  if (!dates || !dates.length) return '';
+  return dates[0] + (dates.length > 1 ? ' ~ ' + dates[dates.length-1] : '');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+</script>
+
+<!-- ───── CLAB 챗봇 위젯 ───── -->
+<script>
+(function () {
+  'use strict';
+  // ▼ Google Apps Script 배포 URL을 아래에 입력하세요
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL';
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #clab-chat-toggle { position:fixed; bottom:28px; right:28px; z-index:9999; width:56px; height:56px; border-radius:50%; background:#FF5C35; color:#fff; border:none; cursor:pointer; box-shadow:0 4px 20px rgba(255,92,53,0.45); display:flex; align-items:center; justify-content:center; font-size:26px; transition:transform 0.2s,box-shadow 0.2s; }
+    #clab-chat-toggle:hover { transform:scale(1.08); }
+    #clab-chat-toggle .chat-icon-open { display:flex; } #clab-chat-toggle .chat-icon-close { display:none; }
+    #clab-chat-toggle.open .chat-icon-open { display:none; } #clab-chat-toggle.open .chat-icon-close { display:flex; }
+    #clab-chat-badge { position:fixed; bottom:92px; right:22px; z-index:10000; background:#FF5C35; color:#fff; font-size:12px; font-weight:700; border-radius:20px; padding:5px 12px; box-shadow:0 2px 10px rgba(255,92,53,0.35); pointer-events:none; opacity:1; transition:opacity 0.4s; white-space:nowrap; }
+    #clab-chat-badge.hidden { opacity:0; }
+    #clab-chat-panel { position:fixed; bottom:96px; right:28px; z-index:9998; width:360px; max-height:560px; background:#fff; border-radius:20px; box-shadow:0 8px 40px rgba(0,0,0,0.18); display:flex; flex-direction:column; overflow:hidden; transform:scale(0.92) translateY(12px); opacity:0; pointer-events:none; transition:transform 0.25s cubic-bezier(.4,0,.2,1),opacity 0.25s; }
+    #clab-chat-panel.open { transform:scale(1) translateY(0); opacity:1; pointer-events:all; }
+    @media(max-width:420px){ #clab-chat-panel{right:8px;left:8px;width:auto;bottom:88px;} #clab-chat-toggle{bottom:16px;right:16px;} #clab-chat-badge{bottom:80px;right:12px;} }
+    .clab-chat-header { background:#FF5C35; color:#fff; padding:18px 20px 14px; flex-shrink:0; }
+    .clab-chat-header h3 { margin:0 0 2px; font-size:16px; font-weight:700; } .clab-chat-header p { margin:0; font-size:12px; opacity:0.85; }
+    .clab-chat-messages { flex:1; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:10px; }
+    .clab-msg { max-width:82%; font-size:14px; line-height:1.55; padding:10px 14px; border-radius:14px; word-break:break-word; white-space:pre-wrap; }
+    .clab-msg.bot { background:#f5f5f5; color:#222; align-self:flex-start; border-bottom-left-radius:4px; }
+    .clab-msg.user { background:#FF5C35; color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+    .clab-msg.system { background:#fff3f0; color:#FF5C35; font-size:12px; align-self:center; text-align:center; border-radius:10px; padding:6px 12px; }
+    .clab-chat-footer { border-top:1px solid #ebebeb; padding:12px 14px; flex-shrink:0; }
+    .clab-input-row { display:flex; gap:8px; align-items:flex-end; }
+    .clab-chat-input { flex:1; resize:none; border:1px solid #ddd; border-radius:12px; padding:10px 14px; font-size:14px; font-family:'Noto Sans KR',-apple-system,sans-serif; line-height:1.4; outline:none; transition:border-color 0.15s; max-height:100px; min-height:42px; }
+    .clab-chat-input:focus { border-color:#FF5C35; }
+    .clab-chat-send { flex-shrink:0; width:42px; height:42px; border-radius:50%; background:#FF5C35; color:#fff; border:none; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:opacity 0.15s; }
+    .clab-chat-send:hover { opacity:0.85; } .clab-chat-send:disabled { opacity:0.45; cursor:default; }
+    .clab-name-input { width:100%; border:1px solid #ddd; border-radius:12px; padding:8px 14px; font-size:13px; font-family:'Noto Sans KR',-apple-system,sans-serif; outline:none; margin-bottom:8px; transition:border-color 0.15s; }
+    .clab-name-input:focus { border-color:#FF5C35; }
+    .clab-privacy { font-size:11px; color:#bbb; text-align:center; margin-top:6px; }
+    .clab-typing { display:flex; gap:4px; align-items:center; padding:10px 14px; background:#f5f5f5; border-radius:14px; border-bottom-left-radius:4px; align-self:flex-start; }
+    .clab-typing span { width:6px; height:6px; background:#bbb; border-radius:50%; animation:clabDot 1.2s infinite; }
+    .clab-typing span:nth-child(2){animation-delay:0.2s;} .clab-typing span:nth-child(3){animation-delay:0.4s;}
+    @keyframes clabDot{0%,60%,100%{transform:translateY(0);opacity:0.5;}30%{transform:translateY(-4px);opacity:1;}}
+  `;
+  document.head.appendChild(style);
+
+  const badge = document.createElement('div');
+  badge.id = 'clab-chat-badge'; badge.textContent = '💬 문의하기'; badge.classList.add('hidden');
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'clab-chat-toggle';
+  toggleBtn.setAttribute('aria-label', '챗봇 열기');
+  toggleBtn.innerHTML = '<span class="chat-icon-open">💬</span><span class="chat-icon-close">✕</span>';
+
+  const panel = document.createElement('div');
+  panel.id = 'clab-chat-panel'; panel.setAttribute('role', 'dialog');
+  panel.innerHTML = `
+    <div class="clab-chat-header">
+      <h3>👏 CLAB 문의하기</h3>
+      <p>무엇이든 물어보세요. 운영팀이 답변드릴게요!</p>
+    </div>
+    <div class="clab-chat-messages" id="clab-messages"></div>
+    <div class="clab-chat-footer">
+      <input type="text" class="clab-name-input" id="clab-name" placeholder="이름 (선택)" maxlength="30"/>
+      <div class="clab-input-row">
+        <textarea class="clab-chat-input" id="clab-input" placeholder="메시지를 입력하세요…" rows="1" maxlength="1000"></textarea>
+        <button class="clab-chat-send" id="clab-send" aria-label="전송">➤</button>
+      </div>
+      <div class="clab-privacy">입력 내용은 운영팀에게만 전달됩니다.</div>
+    </div>
+  `;
+
+  document.body.appendChild(badge);
+  document.body.appendChild(toggleBtn);
+  document.body.appendChild(panel);
+
+  const messagesEl = document.getElementById('clab-messages');
+  const inputEl    = document.getElementById('clab-input');
+  const sendBtn    = document.getElementById('clab-send');
+  const nameEl     = document.getElementById('clab-name');
+  let isOpen = false, isSending = false;
+
+  function addMsg(text, role) {
+    const div = document.createElement('div');
+    div.className = 'clab-msg ' + role; div.textContent = text;
+    messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function showTyping() {
+    const el = document.createElement('div'); el.className = 'clab-typing'; el.id = 'clab-typing-indicator';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    messagesEl.appendChild(el); messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideTyping() { const el = document.getElementById('clab-typing-indicator'); if (el) el.remove(); }
+  function autoResize() { inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px'; }
+  function initMessages() {
+    if (messagesEl.childElementCount === 0)
+      addMsg('안녕하세요! CLAB에 오신 것을 환영합니다 👏\n궁금한 점이나 의견을 남겨주세요. 운영팀이 확인 후 답변드릴게요.', 'bot');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    isOpen = !isOpen;
+    toggleBtn.classList.toggle('open', isOpen);
+    panel.classList.toggle('open', isOpen);
+    badge.classList.add('hidden');
+    if (isOpen) { initMessages(); setTimeout(() => inputEl.focus(), 300); }
+  });
+
+  setTimeout(() => badge.classList.remove('hidden'), 3000);
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || isSending) return;
+    const name = nameEl.value.trim() || '익명';
+    isSending = true; sendBtn.disabled = true;
+    addMsg(text, 'user');
+    inputEl.value = ''; inputEl.style.height = 'auto';
+    showTyping();
+    try {
+      if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL') {
+        await new Promise(r => setTimeout(r, 800));
+        hideTyping();
+        addMsg('Apps Script URL을 설정해주세요.', 'system');
+      } else {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, message: text, page: location.href,
+            timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+          }),
+        });
+        hideTyping();
+        addMsg('메시지가 전달되었습니다! 운영팀이 확인 후 연락드릴게요 😊', 'bot');
+      }
+    } catch (err) {
+      hideTyping();
+      addMsg('전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'system');
+    } finally {
+      isSending = false; sendBtn.disabled = false; inputEl.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+  inputEl.addEventListener('input', autoResize);
+})();
+</script>
+</body>
+</html>

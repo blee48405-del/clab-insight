@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>클랩 인사이트 | by CLAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF5C35;
+      --primary-light: #fff3f0;
+      --dark: #111111;
+      --gray1: #333;
+      --gray2: #666;
+      --gray3: #999;
+      --gray4: #ccc;
+      --gray5: #f5f5f5;
+      --white: #ffffff;
+      --border: #ebebeb;
+      --radius: 14px;
+      --shadow: 0 2px 16px rgba(0,0,0,0.07);
+      --shadow-hover: 0 8px 32px rgba(0,0,0,0.13);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans KR', -apple-system, sans-serif;
+      background: var(--white);
+      color: var(--dark);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ───── 헤더 ───── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 1140px; margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex; align-items: center; gap: 32px;
+    }
+    .logo {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+      text-decoration: none; color: var(--dark);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .logo .logo-clab { color: var(--primary); }
+    .logo .logo-badge {
+      font-size: 10px; font-weight: 500;
+      background: var(--primary); color: #fff;
+      padding: 2px 7px; border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+    nav { display: flex; gap: 4px; margin-left: auto; }
+    nav a {
+      font-size: 14px; font-weight: 500; color: var(--gray2);
+      text-decoration: none; padding: 6px 12px; border-radius: 8px;
+      transition: all 0.15s;
+    }
+    nav a:hover { color: var(--dark); background: var(--gray5); }
+    nav a.active { color: var(--primary); background: var(--primary-light); }
+    .header-cta {
+      font-size: 13px; font-weight: 600;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 8px;
+      padding: 8px 16px; cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .header-cta:hover { opacity: 0.85; }
+
+    /* ───── 히어로 ───── */
+    .hero {
+      background: linear-gradient(135deg, #fff8f6 0%, #fff3ee 50%, #ffeee8 100%);
+      padding: 72px 24px 64px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(255,92,53,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: -40px; left: -40px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, rgba(255,92,53,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--primary);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      background: var(--primary-light); border: 1px solid rgba(255,92,53,0.2);
+      padding: 5px 14px; border-radius: 20px; margin-bottom: 20px;
+    }
+    .hero-title {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700; letter-spacing: -1.5px;
+      line-height: 1.15; margin-bottom: 16px;
+    }
+    .hero-title em { color: var(--primary); font-style: normal; }
+    .hero-desc {
+      font-size: 16px; color: var(--gray2); max-width: 480px;
+      margin: 0 auto 36px; line-height: 1.7;
+    }
+    .hero-stats {
+      display: inline-flex; gap: 0;
+      background: #fff; border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .hero-stat {
+      padding: 18px 32px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .hero-stat strong { display: block; font-size: 28px; font-weight: 700; letter-spacing: -1px; color: var(--primary); }
+    .hero-stat span { font-size: 12px; color: var(--gray3); font-weight: 400; }
+
+    /* ───── 업로드 배너 ───── */
+    #upload-banner {
+      max-width: 1140px; margin: 40px auto 0;
+      padding: 0 24px;
+    }
+    .upload-zone {
+      background: var(--gray5);
+      border: 2px dashed var(--gray4);
+      border-radius: var(--radius);
+      padding: 36px 24px;
+      text-align: center; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-zone:hover, .upload-zone.drag {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .upload-zone .upload-icon { font-size: 36px; margin-bottom: 10px; }
+    .upload-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .upload-zone p { font-size: 13px; color: var(--gray3); }
+    #file-input { display: none; }
+
+    /* ───── 섹션 공통 ───── */
+    .section { max-width: 1140px; margin: 0 auto; padding: 56px 24px; }
+    .section-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 28px; gap: 16px;
+    }
+    .section-head .left {}
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--primary);
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .section-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    .see-all {
+      font-size: 13px; color: var(--gray3); text-decoration: none;
+      display: flex; align-items: center; gap: 4px; white-space: nowrap;
+      transition: color 0.15s;
+    }
+    .see-all:hover { color: var(--primary); }
+
+    /* ───── 피처드 카드 (링크) ───── */
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .article-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all 0.2s;
+      cursor: pointer;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .article-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-3px);
+      border-color: transparent;
+    }
+    .card-top { display: flex; align-items: center; justify-content: space-between; }
+    .sender-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500;
+      background: var(--gray5); border-radius: 20px;
+      padding: 4px 10px;
+    }
+    .sender-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .card-time { font-size: 11px; color: var(--gray4); }
+    .domain-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; color: var(--primary);
+      background: var(--primary-light); border-radius: 6px;
+      padding: 3px 8px;
+    }
+    .card-url {
+      font-size: 13px; color: #2563eb;
+      word-break: break-all; text-decoration: none;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-url:hover { text-decoration: underline; }
+    .card-comment {
+      font-size: 14px; line-height: 1.65; color: var(--gray1);
+      background: var(--gray5); border-radius: 8px;
+      padding: 10px 14px;
+      display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-footer {
+      display: flex; align-items: center; gap: 8px; margin-top: auto;
+    }
+    .clap-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--gray3);
+      background: none; border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .clap-btn:hover, .clap-btn.clapped {
+      border-color: var(--primary); color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    /* ───── 인사이트 (텍스트) ───── */
+    .insight-list { display: flex; flex-direction: column; gap: 12px; }
+    .insight-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex; gap: 20px; align-items: flex-start;
+      transition: all 0.2s;
+    }
+    .insight-card:hover { box-shadow: var(--shadow); }
+    .insight-number {
+      font-size: 32px; font-weight: 700; color: #f0f0f0;
+      line-height: 1; flex-shrink: 0; margin-top: 2px;
+      letter-spacing: -1px;
+    }
+    .insight-body { flex: 1; }
+    .insight-text { font-size: 15px; line-height: 1.7; color: var(--gray1); margin-bottom: 8px; }
+    .insight-meta { font-size: 12px; color: var(--gray4); }
+    .insight-meta strong { color: var(--primary); }
+
+    /* ───── 참여자 ───── */
+    .members-row {
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .member-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      flex: 1; min-width: 180px;
+    }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .member-name { font-size: 14px; font-weight: 600; }
+    .member-count { font-size: 12px; color: var(--gray3); margin-top: 2px; }
+
+    /* ───── 미디어 ───── */
+    .media-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+    }
+    .media-card {
+      background: var(--gray5); border-radius: 10px;
+      padding: 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .media-icon { font-size: 28px; flex-shrink: 0; }
+    .media-name { font-size: 13px; font-weight: 500; color: var(--gray1); }
+    .media-meta { font-size: 11px; color: var(--gray3); margin-top: 3px; }
+
+    /* ───── 날짜 구분 ───── */
+    .date-divider {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 12px; color: var(--gray3); font-weight: 500;
+      margin: 24px 0 16px;
+    }
+    .date-divider::before, .date-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ───── 필터 탭 ───── */
+    .filter-tabs {
+      display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap;
+    }
+    .tab-btn {
+      font-size: 13px; font-weight: 500;
+      padding: 7px 16px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--white); color: var(--gray2);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* ───── 빈 상태 ───── */
+    .empty-state {
+      text-align: center; padding: 80px 24px;
+      color: var(--gray3);
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--gray2); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; line-height: 1.7; }
+
+    /* ───── 구분선 섹션 ───── */
+    .divider { height: 1px; background: var(--border); max-width: 1140px; margin: 0 auto; }
+
+    /* ───── 푸터 ───── */
+    footer {
+      background: var(--dark); color: rgba(255,255,255,0.5);
+      padding: 48px 24px; text-align: center;
+      margin-top: 80px;
+    }
+    .footer-logo { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .footer-logo span { color: var(--primary); }
+    footer p { font-size: 13px; line-height: 1.7; }
+    footer a { color: rgba(255,255,255,0.4); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    /* ───── 반응형 ───── */
+    @media (max-width: 900px) {
+      .featured-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .featured-grid { grid-template-columns: 1fr; }
+      .hero-stats { flex-direction: column; }
+      .hero-stat { border-right: none; border-bottom: 1px solid var(--border); }
+      .hero-stat:last-child { border-bottom: none; }
+      nav { display: none; }
+      .header-cta { display: none; }
+      .section { padding: 40px 16px; }
+    }
+
+    /* ───── 인쇄/PDF ───── */
+    @media print {
+      header, #upload-banner, .filter-tabs, .clap-btn, footer { display: none; }
+      .article-card { break-inside: avoid; }
+    }
+
+    /* ───── 애니메이션 ───── */
+    .fade-in {
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card-wrapper { animation: fadeUp 0.35s ease both; }
+    .card-wrapper:nth-child(2) { animation-delay: 0.05s; }
+    .card-wrapper:nth-child(3) { animation-delay: 0.10s; }
+    .card-wrapper:nth-child(4) { animation-delay: 0.15s; }
+    .card-wrapper:nth-child(5) { animation-delay: 0.20s; }
+    .card-wrapper:nth-child(6) { animation-delay: 0.25s; }
+  </style>
+</head>
+<body>
+
+<!-- ───── 헤더 ───── -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <span class="logo-clab">c</span>lab
+      <span class="logo-badge">INSIGHT</span>
+    </a>
+    <nav>
+      <a href="#links" class="active">아티클</a>
+      <a href="#insights">인사이트</a>
+      <a href="#members">멤버</a>
+    </nav>
+    <a href="https://clab.iba.or.kr" target="_blank" class="header-cta">👏 CLAB 바로가기</a>
+  </div>
+</header>
+
+<!-- ───── 히어로 ───── -->
+<div class="hero">
+  <div class="hero-eyebrow">👏 by CLAB</div>
+  <h1 class="hero-title">
+    우리가 함께<br>
+    <em>모은 인사이트</em>
+  </h1>
+  <p class="hero-desc">
+    단톡방에서 공유된 링크·자료·생각들을<br>
+    큐레이션해서 발행합니다
+  </p>
+  <div class="hero-stats" id="hero-stats">
+    <div class="hero-stat"><strong id="stat-msg">—</strong><span>메시지</span></div>
+    <div class="hero-stat"><strong id="stat-link">—</strong><span>링크</span></div>
+    <div class="hero-stat"><strong id="stat-member">—</strong><span>참여자</span></div>
+    <div class="hero-stat"><strong id="stat-day">—</strong><span>일간</span></div>
+  </div>
+</div>
+
+<!-- ───── 업로드 ───── -->
+<div id="upload-banner">
+  <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="upload-icon">📂</div>
+    <h3>카카오톡 대화 파일(.txt)을 올려주세요</h3>
+    <p>카카오톡 채팅방 → 메뉴(≡) → 대화 내보내기 → .txt 저장 후 이 곳에 드래그 또는 클릭</p>
+  </div>
+  <input type="file" id="file-input" accept=".txt">
+  <div style="text-align:center; margin-top:16px;">
+    <button class="tab-btn active" onclick="loadDemo()" style="font-size:14px; padding:10px 24px;">
+      👀 샘플 데이터로 미리보기
+    </button>
+    <button class="tab-btn" id="pdf-btn" onclick="window.print()" style="margin-left:8px;">
+      🖨️ PDF 저장
+    </button>
+  </div>
+</div>
+
+<!-- ───── 컨텐츠 영역 ───── -->
+<div id="content-root"></div>
+
+<!-- ───── 푸터 ───── -->
+<footer>
+  <div class="footer-logo"><span>c</span>lab insight</div>
+  <p>단톡방 큐레이션 매거진 · by <a href="https://clab.iba.or.kr" target="_blank">CLAB</a><br>
+  기업이 칭찬받는 플랫폼, 클랩</p>
+</footer>
+
+<script>
+// ──────────────────────────────────────────────
+// 파서
+// ──────────────────────────────────────────────
+const PALETTE = ['#FF5C35','#3B82F6','#10B981','#8B5CF6','#F59E0B','#EC4899','#06B6D4','#6366F1'];
+const senderColors = {};
+let colorIdx = 0;
+function senderColor(name) {
+  if (!senderColors[name]) senderColors[name] = PALETTE[colorIdx++ % PALETTE.length];
+  return senderColors[name];
+}
+
+function parseKakao(text) {
+  const lines = text.split('\n');
+  const messages = [], senders = {}, dates = {};
+  const MSG = /^\[(.+?)\] \[(오전|오후) (\d{1,2}):(\d{2})\] (.*)$/;
+  const DATE = /[-─]+\s*(\d{4}년 \d{1,2}월 \d{1,2}일.+?)\s*[-─]+/;
+  let curDate = '', lastMsg = null;
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    const dm = line.match(DATE);
+    if (dm) { curDate = dm[1].trim(); if (!dates[curDate]) dates[curDate] = 0; continue; }
+    const mm = line.match(MSG);
+    if (mm) {
+      const [, sender, ap, h, m, content] = mm;
+      let hr = parseInt(h);
+      if (ap === '오후' && hr !== 12) hr += 12;
+      if (ap === '오전' && hr === 12) hr = 0;
+      senders[sender] = (senders[sender] || 0) + 1;
+      if (curDate) dates[curDate] = (dates[curDate] || 0) + 1;
+      lastMsg = { sender, time: `${String(hr).padStart(2,'0')}:${m}`, date: curDate, content, type: classify(content) };
+      messages.push(lastMsg);
+    } else if (lastMsg && line && !line.startsWith('카카오톡')) {
+      lastMsg.content += '\n' + line;
+    }
+  }
+  return { messages, senders, dates };
+}
+
+function classify(c) {
+  if (/https?:\/\//.test(c)) return 'link';
+  if (/사진$|이모티콘$|동영상$|파일$|GIF$/.test(c.trim())) return 'media';
+  return 'text';
+}
+function extractUrl(c) { const m = c.match(/https?:\/\/[^\s]+/); return m?m[0]:null; }
+function domain(url) { try { return new URL(url).hostname.replace('www.',''); } catch { return ''; } }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ──────────────────────────────────────────────
+// 파일 입력
+// ──────────────────────────────────────────────
+let parsed = null;
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('drop-zone');
+fileInput.addEventListener('change', e => { if (e.target.files[0]) readFile(e.target.files[0]); });
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+function readFile(file) {
+  const r = new FileReader();
+  r.onload = e => { parsed = parseKakao(e.target.result); render(parsed); };
+  r.readAsText(file, 'UTF-8');
+}
+
+// ──────────────────────────────────────────────
+// 샘플 데이터
+// ──────────────────────────────────────────────
+function loadDemo() {
+  const demo = `카카오톡 대화
+저장한 날짜 : 2024-03-01
+
+------------------ 2024년 2월 26일 월요일 ------------------
+[김민준] [오전 9:15] https://news.ycombinator.com/item?id=39505432
+[김민준] [오전 9:16] AI 에이전트 관련 핵커뉴스 핫한 글이에요 — 꼭 읽어보세요
+[이서연] [오전 9:40] 오 좋다! 저도 읽었는데 인상적이었어요
+[박지호] [오전 10:02] https://www.nature.com/articles/d41586-024-00107-9
+[박지호] [오전 10:02] 네이처에 나온 AI 과학 연구 아티클이에요. 퀄리티가 다름
+[이서연] [오전 10:16] https://arxiv.org/abs/2402.01030
+[이서연] [오전 10:17] 이 논문 진짜 핵심 — 멀티모달 추론 관련 최신 연구
+[김민준] [오전 11:00] GPT-5 루머가 돌던데 다들 어떻게 생각해요? 기대보다 우려가 되는 것 같아요
+[박지호] [오전 11:12] 저도 동의해요. 성능보다 안전성이 먼저여야 하는데
+[이서연] [오후 1:30] 사진
+[최하은] [오후 2:10] https://techcrunch.com/2024/02/26/openai-voice-engine/
+[최하은] [오후 2:10] 오픈AI 음성 엔진 나왔어요. 진짜 소름 — 목소리 복제 수준
+
+------------------ 2024년 2월 27일 화요일 ------------------
+[이서연] [오전 10:00] https://www.anthropic.com/news/claude-3-family
+[이서연] [오전 10:01] 클로드3 패밀리 발표! Opus/Sonnet/Haiku 세 모델. 오늘의 핵심 뉴스
+[박지호] [오후 2:15] https://github.com/anthropics/anthropic-cookbook
+[박지호] [오후 2:16] 앤트로픽 공식 쿡북이에요. 실습 예제 가득 — 꼭 북마크 해두세요
+[최하은] [오후 3:00] 파일
+[김민준] [오후 4:35] 한 주 동안 정말 좋은 자료 많았네요. 클랩 인사이트로 정리되니 훨씬 보기 좋은 것 같아요!
+[이서연] [오후 4:40] 다음 주도 기대됩니다 👏`;
+
+  parsed = parseKakao(demo);
+  render(parsed);
+}
+
+// ──────────────────────────────────────────────
+// 렌더링
+// ──────────────────────────────────────────────
+function render(data) {
+  const { messages, senders, dates } = data;
+  const links = messages.filter(m => m.type === 'link');
+  const texts = messages.filter(m => m.type === 'text' && m.content.length >= 20);
+  const media = messages.filter(m => m.type === 'media');
+
+  // 통계
+  document.getElementById('stat-msg').textContent = messages.length;
+  document.getElementById('stat-link').textContent = links.length;
+  document.getElementById('stat-member').textContent = Object.keys(senders).length;
+  document.getElementById('stat-day').textContent = Object.keys(dates).filter(d=>d).length;
+
+  // 업로드 배너 숨김
+  document.getElementById('upload-banner').style.display = 'none';
+
+  let html = '';
+
+  // ── 링크/아티클 섹션
+  if (links.length > 0) {
+    html += `
+    <div class="section" id="links">
+      <div class="section-head">
+        <div class="left">
+          <div class="section-label">Articles</div>
+          <div class="section-title">공유된 링크 · 아티클 <span style="font-size:16px;color:var(--gray4);font-weight:400">${links.length}</span></div>
+        </div>
+      </div>
+      <div class="filter-tabs" id="tab-row">
+        <button class="tab-btn active" onclick="filterAll(this)">전체</button>
+        ${[...new Set(links.map(m=>domain(extractUrl(m.content))).filter(Boolean))].slice(0,6).map(d=>`<button class="tab-btn" onclick="filterDomain('${d}',this)">${d}</button>`).join('')}
+      </div>
+      <div class="featured-grid" id="article-grid">`;
+
+    let prevDate = '';
+    links.forEach((msg, i) => {
+      const url = extractUrl(msg.content);
+      const comment = msg.content.replace(/https?:\/\/[^\s]+/g,'').trim();
+      const nextComments = [];
+      for (let j = messages.indexOf(msg)+1; j <= messages.indexOf(msg)+3 && j < messages.length; j++) {
+        if (messages[j].sender === msg.sender && messages[j].type === 'text' && messages[j].content.length >= 10) {
+          nextComments.push(messages[j].content); break;
+        }
+      }
+      const col = senderColor(msg.sender);
+      const dm = domain(url);
+      html += `
+        <div class="card-wrapper article-card-wrap" data-domain="${dm}">
+          <div class="article-card">
+            <div class="card-top">
+              <span class="sender-chip">
+                <span class="sender-dot" style="background:${col}"></span>
+                ${esc(msg.sender)}
+              </span>
+              <span class="card-time">${msg.date ? msg.date.replace(/\d{4}년 /,'') : ''} ${msg.time}</span>
+            </div>
+            ${dm ? `<span class="domain-tag">🔗 ${dm}</span>` : ''}
+            <a class="card-url" href="${url}" target="_blank" rel="noopener">${url}</a>
+            ${comment ? `<div class="card-comment">"${esc(comment)}"</div>` : ''}
+            ${nextComments.map(c=>`<div class="card-comment">"${esc(c)}"</div>`).join('')}
+            <div class="card-footer">
+              <button class="clap-btn" onclick="clap(this)">👏 <span class="clap-count">0</span></button>
+              <button class="clap-btn" onclick="copyLink('${url}', this)">🔗 복사</button>
+            </div>
+          </div>
+        </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  html += `<div class="divider"></div>`;
+
+  // ── 인사이트 섹션
+  const longTexts = texts.filter(m => m.content.length >= 20);
+  if (longTexts.length > 0) {
+    html += `
+    <div class="section" id="insights">
+      <div class="section-head">
+        <div class="left">
+          <div class="section-label">Insights</div>
+          <div class="section-title">멤버 인사이트 <span style="font-size:16px;color:var(--gray4);font-weight:400">${longTexts.length}</span></div>
+        </div>
+      </div>
+      <div class="insight-list">`;
+    longTexts.forEach((msg, i) => {
+      const col = senderColor(msg.sender);
+      html += `
+        <div class="insight-card fade-in">
+          <div class="insight-number">${String(i+1).padStart(2,'0')}</div>
+          <div class="insight-body">
+            <div class="insight-text">${esc(msg.content)}</div>
+            <div class="insight-meta">
+              <strong style="color:${col}">${esc(msg.sender)}</strong>
+              &nbsp;·&nbsp; ${msg.date ? msg.date.replace(/\d{4}년 /,'') : ''} ${msg.time}
+            </div>
+          </div>
+        </div>`;
+    });
+    html += `</div></div>`;
+    html += `<div class="divider"></div>`;
+  }
+
+  // ── 참여자 섹션
+  const sortedSenders = Object.entries(senders).sort((a,b)=>b[1]-a[1]);
+  html += `
+  <div class="section" id="members">
+    <div class="section-head">
+      <div class="left">
+        <div class="section-label">Members</div>
+        <div class="section-title">이번 호 참여자</div>
+      </div>
+    </div>
+    <div class="members-row">`;
+  sortedSenders.forEach(([name, count]) => {
+    const col = senderColor(name);
+    html += `
+      <div class="member-card">
+        <div class="avatar" style="background:${col}">${name.charAt(0)}</div>
+        <div>
+          <div class="member-name">${esc(name)}</div>
+          <div class="member-count">메시지 ${count}개</div>
+        </div>
+      </div>`;
+  });
+  html += `</div></div>`;
+
+  // ── 미디어 섹션
+  if (media.length > 0) {
+    html += `<div class="divider"></div>
+    <div class="section">
+      <div class="section-head">
+        <div class="left">
+          <div class="section-label">Media</div>
+          <div class="section-title">공유된 파일 · 미디어</div>
+        </div>
+      </div>
+      <div class="media-grid">`;
+    media.forEach(msg => {
+      const icon = msg.content.includes('사진')?'🖼️':msg.content.includes('동영상')?'🎬':'📎';
+      const col = senderColor(msg.sender);
+      html += `
+        <div class="media-card">
+          <span class="media-icon">${icon}</span>
+          <div>
+            <div class="media-name">${esc(msg.content)}</div>
+            <div class="media-meta" style="color:${col}">${esc(msg.sender)} · ${msg.time}</div>
+          </div>
+        </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  document.getElementById('content-root').innerHTML = html;
+}
+
+// ──────────────────────────────────────────────
+// 인터랙션
+// ──────────────────────────────────────────────
+function clap(btn) {
+  btn.classList.toggle('clapped');
+  const n = btn.querySelector('.clap-count');
+  n.textContent = btn.classList.contains('clapped') ? parseInt(n.textContent)+1 : Math.max(0,parseInt(n.textContent)-1);
+}
+function copyLink(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.textContent; btn.textContent = '✅ 복사됨';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+function filterAll(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.article-card-wrap').forEach(el=>el.style.display='');
+}
+function filterDomain(d, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.article-card-wrap').forEach(el=>{
+    el.style.display = el.dataset.domain === d ? '' : 'none';
+  });
+}
+</script>
+
+<!-- ───── CLAB 챗봇 위젯 ───── -->
+<script>
+(function () {
+  'use strict';
+
+  // ▼ Google Apps Script 배포 URL을 아래에 입력하세요
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL';
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #clab-chat-toggle {
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: #FF5C35; color: #fff; border: none; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,92,53,0.45);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #clab-chat-toggle:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(255,92,53,0.55); }
+    #clab-chat-toggle .chat-icon-open  { display: flex; }
+    #clab-chat-toggle .chat-icon-close { display: none; }
+    #clab-chat-toggle.open .chat-icon-open  { display: none; }
+    #clab-chat-toggle.open .chat-icon-close { display: flex; }
+    #clab-chat-badge {
+      position: fixed; bottom: 92px; right: 22px; z-index: 10000;
+      background: #FF5C35; color: #fff; font-size: 12px; font-weight: 700;
+      border-radius: 20px; padding: 5px 12px;
+      box-shadow: 0 2px 10px rgba(255,92,53,0.35);
+      pointer-events: none; opacity: 1; transition: opacity 0.4s;
+      white-space: nowrap;
+    }
+    #clab-chat-badge.hidden { opacity: 0; }
+    #clab-chat-panel {
+      position: fixed; bottom: 96px; right: 28px; z-index: 9998;
+      width: 360px; max-height: 560px; background: #fff;
+      border-radius: 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      display: flex; flex-direction: column; overflow: hidden;
+      transform: scale(0.92) translateY(12px); opacity: 0;
+      pointer-events: none;
+      transition: transform 0.25s cubic-bezier(.4,0,.2,1), opacity 0.25s;
+    }
+    #clab-chat-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+    @media (max-width: 420px) {
+      #clab-chat-panel { right: 8px; left: 8px; width: auto; bottom: 88px; }
+      #clab-chat-toggle { bottom: 16px; right: 16px; }
+      #clab-chat-badge  { bottom: 80px; right: 12px; }
+    }
+    .clab-chat-header { background: #FF5C35; color: #fff; padding: 18px 20px 14px; flex-shrink: 0; }
+    .clab-chat-header h3 { margin: 0 0 2px; font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .clab-chat-header p  { margin: 0; font-size: 12px; opacity: 0.85; }
+    .clab-chat-messages {
+      flex: 1; overflow-y: auto; padding: 16px 16px 8px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .clab-msg {
+      max-width: 82%; font-size: 14px; line-height: 1.55;
+      padding: 10px 14px; border-radius: 14px; word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .clab-msg.bot    { background: #f5f5f5; color: #222; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .clab-msg.user   { background: #FF5C35; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .clab-msg.system { background: #fff3f0; color: #FF5C35; font-size: 12px; align-self: center; text-align: center; border-radius: 10px; padding: 6px 12px; }
+    .clab-chat-footer { border-top: 1px solid #ebebeb; padding: 12px 14px; flex-shrink: 0; }
+    .clab-input-row { display: flex; gap: 8px; align-items: flex-end; }
+    .clab-chat-input {
+      flex: 1; resize: none; border: 1px solid #ddd; border-radius: 12px;
+      padding: 10px 14px; font-size: 14px;
+      font-family: 'Noto Sans KR', -apple-system, sans-serif;
+      line-height: 1.4; outline: none; transition: border-color 0.15s;
+      max-height: 100px; min-height: 42px;
+    }
+    .clab-chat-input:focus { border-color: #FF5C35; }
+    .clab-chat-send {
+      flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
+      background: #FF5C35; color: #fff; border: none; cursor: pointer;
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.15s;
+    }
+    .clab-chat-send:hover { opacity: 0.85; }
+    .clab-chat-send:disabled { opacity: 0.45; cursor: default; }
+    .clab-name-input {
+      width: 100%; border: 1px solid #ddd; border-radius: 12px;
+      padding: 8px 14px; font-size: 13px;
+      font-family: 'Noto Sans KR', -apple-system, sans-serif;
+      outline: none; margin-bottom: 8px; transition: border-color 0.15s;
+    }
+    .clab-name-input:focus { border-color: #FF5C35; }
+    .clab-privacy { font-size: 11px; color: #bbb; text-align: center; margin-top: 6px; }
+    .clab-typing {
+      display: flex; gap: 4px; align-items: center;
+      padding: 10px 14px; background: #f5f5f5;
+      border-radius: 14px; border-bottom-left-radius: 4px; align-self: flex-start;
+    }
+    .clab-typing span {
+      width: 6px; height: 6px; background: #bbb; border-radius: 50%;
+      animation: clabDot 1.2s infinite;
+    }
+    .clab-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .clab-typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes clabDot {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+      30% { transform: translateY(-4px); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  const badge = document.createElement('div');
+  badge.id = 'clab-chat-badge';
+  badge.textContent = '💬 문의하기';
+  badge.classList.add('hidden');
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'clab-chat-toggle';
+  toggleBtn.setAttribute('aria-label', '챗봇 열기');
+  toggleBtn.innerHTML = '<span class="chat-icon-open">💬</span><span class="chat-icon-close">✕</span>';
+
+  const panel = document.createElement('div');
+  panel.id = 'clab-chat-panel';
+  panel.setAttribute('role', 'dialog');
+  panel.innerHTML = `
+    <div class="clab-chat-header">
+      <h3>👏 CLAB 문의하기</h3>
+      <p>무엇이든 물어보세요. 운영팀이 답변드릴게요!</p>
+    </div>
+    <div class="clab-chat-messages" id="clab-messages"></div>
+    <div class="clab-chat-footer">
+      <input type="text" class="clab-name-input" id="clab-name" placeholder="이름 (선택)" maxlength="30" />
+      <div class="clab-input-row">
+        <textarea class="clab-chat-input" id="clab-input" placeholder="메시지를 입력하세요…" rows="1" maxlength="1000"></textarea>
+        <button class="clab-chat-send" id="clab-send" aria-label="전송">➤</button>
+      </div>
+      <div class="clab-privacy">입력 내용은 운영팀에게만 전달됩니다.</div>
+    </div>
+  `;
+
+  document.body.appendChild(badge);
+  document.body.appendChild(toggleBtn);
+  document.body.appendChild(panel);
+
+  const messagesEl = document.getElementById('clab-messages');
+  const inputEl    = document.getElementById('clab-input');
+  const sendBtn    = document.getElementById('clab-send');
+  const nameEl     = document.getElementById('clab-name');
+  let isOpen = false, isSending = false;
+
+  function addMsg(text, role) {
+    const div = document.createElement('div');
+    div.className = 'clab-msg ' + role;
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function showTyping() {
+    const el = document.createElement('div');
+    el.className = 'clab-typing'; el.id = 'clab-typing-indicator';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideTyping() { const el = document.getElementById('clab-typing-indicator'); if (el) el.remove(); }
+  function autoResize() { inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px'; }
+
+  function initMessages() {
+    if (messagesEl.childElementCount === 0)
+      addMsg('안녕하세요! CLAB에 오신 것을 환영합니다 👏\n궁금한 점이나 의견을 남겨주세요. 운영팀이 확인 후 답변드릴게요.', 'bot');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    isOpen = !isOpen;
+    toggleBtn.classList.toggle('open', isOpen);
+    panel.classList.toggle('open', isOpen);
+    badge.classList.add('hidden');
+    if (isOpen) { initMessages(); setTimeout(() => inputEl.focus(), 300); }
+  });
+
+  setTimeout(() => badge.classList.remove('hidden'), 3000);
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || isSending) return;
+    const name = nameEl.value.trim() || '익명';
+    isSending = true; sendBtn.disabled = true;
+    addMsg(text, 'user');
+    inputEl.value = ''; inputEl.style.height = 'auto';
+    showTyping();
+    try {
+      if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL') {
+        await new Promise(r => setTimeout(r, 800));
+        hideTyping();
+        addMsg('Apps Script URL을 chatbot.js에 설정해주세요.', 'system');
+      } else {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, message: text, page: location.href,
+            timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+          }),
+        });
+        hideTyping();
+        addMsg('메시지가 전달되었습니다! 운영팀이 확인 후 연락드릴게요 😊', 'bot');
+      }
+    } catch (err) {
+      hideTyping();
+      addMsg('전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'system');
+    } finally {
+      isSending = false; sendBtn.disabled = false; inputEl.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+  inputEl.addEventListener('input', autoResize);
+})();
+</script>
+</body>
+</html>
