@@ -729,7 +729,7 @@ function filterDomain(d, btn) {
 (function () {
   'use strict';
   // ▼ Google Apps Script 배포 URL을 아래에 입력하세요
-  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxaarZWCz3N9a23AqGKWX88VYrVbUuNcS26xMvw7a_i2KOq1pPomx9e4PrT3BqGES3Ylg/exec';
 
   const style = document.createElement('style');
   style.textContent = `
@@ -837,7 +837,7 @@ function filterDomain(d, btn) {
     inputEl.value = ''; inputEl.style.height = 'auto';
     showTyping();
     try {
-      if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL') {
+      if (false) {
         await new Promise(r => setTimeout(r, 800));
         hideTyping();
         addMsg('Apps Script URL을 설정해주세요.', 'system');
